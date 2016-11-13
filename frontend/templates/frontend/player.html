@@ -1,0 +1,151 @@
+{% load static %}
+<div id="player"></div>
+
+<script src="{% static "javascript/dev_jquery-3.1.1.js" %}"></script>
+
+<button onclick="Skip()">Skip</button>
+<button onclick="End()">End</button>
+
+<script type="text/javascript">
+
+  function log() {
+    console.log('_Y_',arguments);
+  }
+
+  function getVideos() {
+    $.ajax({
+      method: "POST",
+      url: "api/get_videos",
+      headers: {'X-CSRFToken': '{{ csrf_token }}'},
+      data: { name: "John", location: "Boston" },
+      success:  function(result){
+        log('hohoho','success', result);
+      },
+      error: function(xhr,status,error){
+        log('hohoho','error', xhr,status,error);
+      }
+    });
+
+    var videos = [
+      'Chbm84sCBAw',
+      'w1feICb-HRE',
+      'UfYpxF32EZo'
+    ];
+    return videos;
+  }
+  var videos = getVideos();
+
+  class YQ_Player {
+    constructor (div_id, w, h, opts) {
+      this.m_div_id = div_id;
+      this.m_w = w;
+      this.m_h = h;
+      this.m_cur_index = 0;
+      this.m_store_watched_cb = opts.store_watched;
+      this.m_request_video_cb = opts.request_video;
+
+      this.m_videos = this.m_request_video_cb(10);
+
+      this.m_player = new YT.Player(this.m_div_id, {
+          height: this.m_h,
+          width: this.m_w,
+          events: {
+            'onReady': this._onPlayerReady.bind(this),
+            'onStateChange': this._onPlayerStateChange.bind(this)
+          }
+      });
+      log ('new', div_id, w, h, opts, this);
+    }
+
+    _onPlayerReady(event) {
+      this.m_player.mute();
+      this.m_player.loadPlaylist(this.m_videos.slice(0, this.m_cur_index+1), this.m_cur_index);
+    }
+
+    _onPlayerStateChange(event) {
+      var playerStatus = event.data;
+      var state;
+      var vdata = this.m_player.getVideoData();
+
+      if (playerStatus == -1) {
+        // state = 'unstarted'
+      } else if (playerStatus == 0) {
+        state = 'ended'
+        this.endVideo();
+
+        // log(this.m_videos.slice(0, this.m_cur_index+1), this.m_cur_index);
+      } else if (playerStatus == 1) {
+        // state = 'playing'
+      } else if (playerStatus == 2) {
+        // state = 'paused'
+      } else if (playerStatus == 3) {
+        // state = 'buffering'
+      } else if (playerStatus == 5) {
+        // state = 'cued'
+      } else {
+        // state = '_else_';
+      }
+      // log (state, this.m_player.getPlaylistIndex(), vdata.title, vdata.author, vdata.video_id, this.m_videos);
+    }
+
+    _playNextVideo() {
+      var vdata = this.m_player.getVideoData();
+      this.m_cur_index++;
+      this.m_player.loadPlaylist(this.m_videos.slice(0, this.m_cur_index+1), this.m_cur_index);
+      this.m_videos.push(this.m_request_video_cb(1));
+    }
+
+    _storeWatched() {
+      var vdata = this.m_player.getVideoData();
+      this.m_store_watched_cb(vdata.video_id);
+    }
+
+    skipVideo() {
+      this._playNextVideo();
+    }
+
+    endVideo() {
+      this._storeWatched();
+      this._playNextVideo();
+    }
+  }
+
+
+
+
+
+
+
+  log("init");
+  var tag = document.createElement('script');
+  tag.id = 'iframe-demo';
+  tag.src = 'https://www.youtube.com/iframe_api';
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  var player;
+
+  function Skip(){
+    player.skipVideo();
+  }
+
+  function End(){
+    player.endVideo();
+  }
+
+  function onYouTubeIframeAPIReady() {
+    log("YT API READY");
+    player = new YQ_Player('player', 1280, 720, {'store_watched': storeWatchedCb, 'request_video': requestVideoCb});
+
+  }
+
+  function storeWatchedCb(vid_id) {
+    console.log('storeWatchedCb', vid_id);
+  }
+
+  function requestVideoCb(len) {
+    console.log('requestVideoCb', len, getVideos().slice(0, len));
+    return getVideos().slice(0, len);
+  }
+
+</script>
