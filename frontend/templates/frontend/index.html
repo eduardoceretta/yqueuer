@@ -1,4 +1,11 @@
-<html>
+{% extends 'frontend/base.html' %}
+{% block body_block %}
   <h3> oi </h3>
   <h1> {{ rand }} </h1>
-</html>
+
+  {% if user.is_authenticated %}
+    <h1>Hi {{ user.username }}!</h1>
+  {% else %}
+    <h1>Olá pessoa!</h1>
+  {% endif %}
+{% endblock %}

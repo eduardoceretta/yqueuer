@@ -39,6 +39,7 @@ SECRETS_EXPECTED_CONFIG = {
     'DB_USER': '',
     'DB_PASS': '',
     'ALLOWED_HOSTS': '',
+    'YOUTUBE_API_KEY': '',
 }
 
 SECRETS = readSecrets()
@@ -152,3 +153,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+
+LOGIN_URL = '/login/'

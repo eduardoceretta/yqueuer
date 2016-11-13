@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>{% block title %}Yqueuer{% endblock %}</title>
+  </head>
+
+  <body>
+    <div>
+      <ul>
+      {% if user.is_authenticated %}
+        <li><a href="/player/">Player</a></li>
+        <li><a href="/manage/">Manage</a></li>
+        <li><a href="/logout/">Logout</a></li>
+      {% else %}
+        <li><a href="/register/">Register Here</a></li>
+        <li><a href="/login/">Login</a></li>
+      {% endif %}
+      </ul>
+    </div>
+
+    <hr />
+
+    <div>
+      {% block body_block %}{% endblock %}
+    </div>
+
+  </body>
+</html>
