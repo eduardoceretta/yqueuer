@@ -10,7 +10,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
 from .forms import UserForm
-from .models import Channel, Video, RUserChannel, RUserVideo
+from .models import Channel, Video, RUserVideo
 
 from frontend.yqueuer_api import searchChannel
 
