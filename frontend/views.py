@@ -1,6 +1,8 @@
 import sys
 import random
 import json
+import pytz
+import datetime
 
 from django.conf import settings
 from django.http import Http404
@@ -8,6 +10,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+
 
 from .forms import UserForm
 from .models import Channel, Video, RUserVideo
@@ -85,18 +89,52 @@ def getVideos(request):
   }
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
-# @login_required
-# def markWatched(request):
+@login_required
+def markWatched(request):
+  y_video_id = request.POST['y_video_id']
+  user = request.user
 
-# @login_required
-# def updateLibrary(request):
+  uservideo = user.ruservideo_set.get(video__y_video_id = y_video_id)
+  uservideo.watched = True
+  uservideo.watched_date = timezone.now()
+  uservideo.save()
+
+  response_data = {success: True}
+  return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+
+@login_required
+def updateLibrary(request):
+  user = request.user
+
+  # Move to Constants
+  date_format = '%Y-%m-%d %H:%M:%S'
+  for c in user.channel_set.all():
+    # CALL retrieve videos from c
+    #HARDCODED
+    video_list = (('Chbm84sCBAw', '2016-01-01 01:00:00'), ('w1feICb-HRE', '2016-01-01 01:00:00'), ('UfYpxF32EZo', '2016-01-01 01:00:00')) #HARDCODED
+    #Insert Videos into VideoTable
+    for v in video_list:
+      pub_date = pytz.utc.localize(datetime.datetime.strptime(v[1], date_format))
+      video = Video.objects.update_or_create(y_video_id = v[0], channel = c, pub_date = pub_date)
+
+  response_data = {success: True}
+  return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 @login_required
 def addChannel(request):
-  print >>sys.stderr, request.user, request.POST.has_key('channel_name'), request.GET.has_key('channel_name')
-  result = searchChannel(settings.SECRETS['YOUTUBE_API_KEY'], request.GET['channel_name'])
-  y_channel_id = 'UCZYTClx2T1of7BRZ86-8fow'
-  # channel = Channel(y_channel_id = y_channel_id)
-  # channel.save()
-  response_data = {'t':'oi', 'y_channel_id': y_channel_id, 'res' : result}
+  # print >>sys.stderr, request.user, request.POST.has_key('channel_name'), request.GET.has_key('channel_name')
+
+  user = request.user
+  channel_name = request.POST['channel_name']
+
+  # result = searchChannel(settings.SECRETS['YOUTUBE_API_KEY'], request.GET['channel_name'])
+  y_channel_id = 'UCZYTClx2T1of7BRZ86-8fow' #HARDCODED
+
+  channel = Channel.objects.get_or_create(y_channel_id = y_channel_id)
+  channel.save()
+  user.channel_set.add(channel)
+  user.save()
+
+  response_data = {success: True}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
