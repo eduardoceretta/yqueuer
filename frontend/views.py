@@ -19,6 +19,8 @@ from frontend.models import Channel, Video, RUserVideo
 
 from frontend.yqueuer_api import searchChannel
 
+
+##################################
 def index(request):
   rand = random.randint(10,80)
   if rand == 42:
@@ -29,6 +31,8 @@ def index(request):
   }
   return render(request, 'frontend/index.html', context)
 
+
+##################################
 def register(request):
   registered = False
 
@@ -50,6 +54,8 @@ def register(request):
       'frontend/register.html',
       {'user_form': user_form, 'registered': registered})
 
+
+##################################
 def user_login(request):
   if request.method == 'POST':
     username = request.POST['username']
@@ -68,18 +74,22 @@ def user_login(request):
   else:
     return render(request, 'frontend/login.html', {})
 
+
+##################################
 @login_required
 def user_logout(request):
   logout(request)
-
   return HttpResponseRedirect('/')
 
 
+##################################
 @login_required
 def player(request):
   context = {  }
   return render(request, 'frontend/player.html', context)
 
+
+##################################
 @login_required
 def getVideos(request):
   user = request.user
@@ -93,10 +103,11 @@ def getVideos(request):
   for video in video_qs:
     videos.append(video.y_video_id)
 
-  print >>sys.stderr, request.user, videos
   response_data = { 'videos' : videos }
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
+
+##################################
 @login_required
 def markWatched(request):
   y_video_id = request.POST['y_video_id']
@@ -112,6 +123,7 @@ def markWatched(request):
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 
+##################################
 @login_required
 def updateLibrary(request):
   user = request.user
@@ -130,6 +142,8 @@ def updateLibrary(request):
   response_data = {'success': True}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
+
+##################################
 @login_required
 def addChannel(request):
   # print >>sys.stderr, request.user, request.POST.has_key('channel_name'), request.GET.has_key('channel_name')
