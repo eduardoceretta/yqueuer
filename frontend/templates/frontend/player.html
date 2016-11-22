@@ -15,39 +15,15 @@
       console.log('_Y_',arguments);
     }
 
-    function getVideos() {
-      $.ajax({
-        method: "POST",
-        url: "api/get_videos/",
-        headers: {'X-CSRFToken': '{{ csrf_token }}'},
-        data: { name: "John", location: "Boston" },
-        success:  function(result){
-          log('hohoho','success', result);
-        },
-        error: function(xhr,status,error){
-          log('hohoho','error', xhr,status,error);
-        }
-      });
-
-      var videos = [
-        'Chbm84sCBAw',
-        'w1feICb-HRE',
-        'UfYpxF32EZo'
-      ];
-      return videos;
-    }
-    var videos = getVideos();
-
     class YQ_Player {
-      constructor (div_id, w, h, opts) {
+      constructor (div_id, w, h, videos, opts) {
         this.m_div_id = div_id;
         this.m_w = w;
         this.m_h = h;
         this.m_cur_index = 0;
         this.m_store_watched_cb = opts.store_watched;
-        this.m_request_video_cb = opts.request_video;
 
-        this.m_videos = this.m_request_video_cb(10);
+        this.m_videos = videos;
 
         this.m_player = new YT.Player(this.m_div_id, {
             height: this.m_h,
@@ -95,7 +71,6 @@
         var vdata = this.m_player.getVideoData();
         this.m_cur_index++;
         this.m_player.loadPlaylist(this.m_videos.slice(0, this.m_cur_index+1), this.m_cur_index);
-        this.m_videos.push(this.m_request_video_cb(1));
       }
 
       _storeWatched() {
@@ -113,43 +88,74 @@
       }
     }
 
-
-
-
-
-
-
-    log("init");
-    var tag = document.createElement('script');
-    tag.id = 'iframe-demo';
-    tag.src = 'https://www.youtube.com/iframe_api';
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
     var player;
+    var videos = [];
 
-    function Skip(){
-      player.skipVideo();
+    function FetchVideos(success_cb, error_cb) {
+      log('FetchVideos');
+      $.ajax({
+        method: "POST",
+        url: "/api/get_videos/",
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        data: { },
+        success:  function(result){
+          log('FetchVideos','success', result);
+          videos = result.videos;
+          if (success_cb)
+            success_cb();
+        },
+        error: function(xhr,status,error){
+          log('FetchVideos','error', xhr,status,error);
+          if (error_cb)
+            error_cb();
+        }
+      });
     }
 
-    function End(){
-      player.endVideo();
+    function InitPlayer() {
+      log("InitPlayer");
+      var tag = document.createElement('script');
+      tag.id = 'iframe-demo';
+      tag.src = 'https://www.youtube.com/iframe_api';
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     }
 
     function onYouTubeIframeAPIReady() {
       log("YT API READY");
-      player = new YQ_Player('player', 1280, 720, {'store_watched': storeWatchedCb, 'request_video': requestVideoCb});
+      player = new YQ_Player(
+          'player',
+          1280, 720,
+          videos,
+          {'store_watched': storeWatchedCb}
+      );
+    }
 
+    function Skip() {
+      player.skipVideo();
+    }
+
+    function End() {
+      player.endVideo();
     }
 
     function storeWatchedCb(vid_id) {
       console.log('storeWatchedCb', vid_id);
+      $.ajax({
+        method: "POST",
+        url: "/api/mark_watched/",
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        data: { y_video_id : vid_id },
+        success: function(result){
+          log('storeWatchedCb','success', result);
+        },
+        error: function(xhr,status,error){
+          log('storeWatchedCb','error', xhr,status,error);
+        }
+      });
     }
 
-    function requestVideoCb(len) {
-      console.log('requestVideoCb', len, getVideos().slice(0, len));
-      return getVideos().slice(0, len);
-    }
+    FetchVideos(InitPlayer);
 
   </script>
 {% endblock %}
