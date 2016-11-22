@@ -1,6 +1,7 @@
 import sys
 import random
 import json
+import pprint
 
 from apiclient.discovery import build
 from apiclient.errors import HttpError
@@ -18,11 +19,51 @@ def searchChannel(dev_key, channel_name):
   ).execute()
 
   channels = []
-  print >>sys.stderr, channel_name, search_response
   for search_result in search_response.get("items", []):
-    print >>sys.stderr, search_result
-    _id = search_result.get("id", None)
-    _name = search_result["snippet"]["customUrl"]
-    channels.append([_id, _name])
+    channel_obj = {
+      'id' : search_result["id"],
+      'title' : search_result["snippet"]["title"],
+      'name' : search_result["snippet"].get("customUrl", search_result["snippet"]["title"]),
+      'thumbnails' : search_result["snippet"]["thumbnails"]["high"]["url"],
+      'playlist_uploads' : search_result["contentDetails"]["relatedPlaylists"]["uploads"],
+    }
+    channels.append(channel_obj)
 
   return channels
+
+def getPlaylist(dev_key, playlist_id):
+  DEVELOPER_KEY = dev_key
+  YOUTUBE_API_SERVICE_NAME = "youtube"
+  YOUTUBE_API_VERSION = "v3"
+  youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
+    developerKey=DEVELOPER_KEY)
+
+  videos = []
+  i = 0
+  nextPageToken = None
+  while nextPageToken or i == 0:
+    search_response = youtube.playlistItems().list(
+      part = 'contentDetails,snippet',
+      playlistId = playlist_id,
+      maxResults = 50,
+      pageToken = nextPageToken,
+    ).execute()
+
+    print "\n\n\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    print search_response.get("nextPageToken", None)
+    print search_response["pageInfo"]
+    for search_result in search_response.get("items", []):
+      video_obj = {
+        'id' : search_result["contentDetails"]["videoId"],
+        'description' : search_result["snippet"]["description"],
+        'published_at' : search_result["snippet"]["publishedAt"],
+        'thumbnails' : search_result["snippet"]["thumbnails"]["high"]["url"],
+        'title' : search_result["snippet"]["title"],
+        'position' : search_result["snippet"]["position"],
+      }
+      videos.append(video_obj)
+
+    nextPageToken = search_response.get("nextPageToken", None)
+    i+=1
+
+  return videos
