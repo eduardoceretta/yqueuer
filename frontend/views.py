@@ -11,10 +11,11 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.contrib.auth.models import User
+from django.db.models import Q
 
-
-from .forms import UserForm
-from .models import Channel, Video, RUserVideo
+from frontend.forms import UserForm
+from frontend.models import Channel, Video, RUserVideo
 
 from frontend.yqueuer_api import searchChannel
 
@@ -81,12 +82,19 @@ def player(request):
 
 @login_required
 def getVideos(request):
-  print >>sys.stderr, request.user
-  response_data = { 'videos' : [
-    'Chbm84sCBAw',
-    'w1feICb-HRE',
-    'UfYpxF32EZo']
-  }
+  user = request.user
+
+  # Select videos with no entry on RUserVideo for that user or it has but watched is false
+  video_qs = Video.objects.filter(
+    ~Q( users = user) | Q( users = user, ruservideo__watched = False)
+  )
+
+  videos = []
+  for video in video_qs:
+    videos.append(video.y_video_id)
+
+  print >>sys.stderr, request.user, videos
+  response_data = { 'videos' : videos }
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 @login_required
@@ -94,12 +102,13 @@ def markWatched(request):
   y_video_id = request.POST['y_video_id']
   user = request.user
 
-  uservideo = user.ruservideo_set.get(video__y_video_id = y_video_id)
+  video = Video.objects.get(y_video_id = y_video_id)
+  uservideo, created = user.ruservideo_set.get_or_create(video = video)
   uservideo.watched = True
   uservideo.watched_date = timezone.now()
   uservideo.save()
 
-  response_data = {success: True}
+  response_data = {'success': True}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 
@@ -118,7 +127,7 @@ def updateLibrary(request):
       pub_date = pytz.utc.localize(datetime.datetime.strptime(v[1], date_format))
       video = Video.objects.update_or_create(y_video_id = v[0], channel = c, pub_date = pub_date)
 
-  response_data = {success: True}
+  response_data = {'success': True}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 @login_required
@@ -131,10 +140,10 @@ def addChannel(request):
   # result = searchChannel(settings.SECRETS['YOUTUBE_API_KEY'], request.GET['channel_name'])
   y_channel_id = 'UCZYTClx2T1of7BRZ86-8fow' #HARDCODED
 
-  channel = Channel.objects.get_or_create(y_channel_id = y_channel_id)
+  channel, created = Channel.objects.get_or_create(y_channel_id = y_channel_id)
   channel.save()
   user.channel_set.add(channel)
   user.save()
 
-  response_data = {success: True}
+  response_data = {'success': True}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
