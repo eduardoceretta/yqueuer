@@ -17,18 +17,17 @@ class Video(models.Model):
   channel = models.ForeignKey(Channel)
   pub_date = models.DateTimeField('date published', null = True, blank = True)
 
-  user_video = models.ManyToManyField(User, through='RUserVideo')
+  users = models.ManyToManyField(User, through='RUserVideo')
 
   def __str__(self):
     return self.y_video_id
-
-# class RUserChannel(models.Model):
-#   user = models.ForeignKey(User)
-#   channel = models.ForeignKey(Channel)
 
 class RUserVideo(models.Model):
   user = models.ForeignKey(User)
   video = models.ForeignKey(Video)
   watched_date = models.DateTimeField('date watched', null = True, blank = True)
   watched = models.BooleanField(default = False)
+
+  def __str__(self):
+    return "User: %s | Video: %s | Watched: %s" % (self.user.username, self.video.y_video_id, self.watched)
 
