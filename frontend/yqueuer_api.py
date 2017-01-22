@@ -25,13 +25,13 @@ def searchChannel(dev_key, channel_name):
       'title' : search_result["snippet"]["title"],
       'name' : search_result["snippet"].get("customUrl", search_result["snippet"]["title"]),
       'thumbnails' : search_result["snippet"]["thumbnails"]["high"]["url"],
-      'playlist_uploads' : search_result["contentDetails"]["relatedPlaylists"]["uploads"],
+      'playlist_uploads_id' : search_result["contentDetails"]["relatedPlaylists"]["uploads"],
     }
     channels.append(channel_obj)
 
-  return channels
+  return channels[0] if len(channels) > 0 else None
 
-def getPlaylist(dev_key, playlist_id):
+def getVideosFromPlaylist(dev_key, playlist_id):
   DEVELOPER_KEY = dev_key
   YOUTUBE_API_SERVICE_NAME = "youtube"
   YOUTUBE_API_VERSION = "v3"
@@ -49,9 +49,6 @@ def getPlaylist(dev_key, playlist_id):
       pageToken = nextPageToken,
     ).execute()
 
-    print "\n\n\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    print search_response.get("nextPageToken", None)
-    print search_response["pageInfo"]
     for search_result in search_response.get("items", []):
       video_obj = {
         'id' : search_result["contentDetails"]["videoId"],
