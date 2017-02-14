@@ -113,6 +113,7 @@ def getVideos(request):
     videos.append({
       'id': video.y_video_id,
       'title': video.title,
+      'channel_name': video.channel.title,
       'published_at' : str(video.published_at),
       'thumbnails' : video.thumbnails,
       'description' : video.description,
