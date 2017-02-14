@@ -23,7 +23,8 @@
         this.m_cur_index = 0;
         this.m_store_watched_cb = opts.store_watched;
 
-        this.m_videos = videos;
+        this.m_videos_dataset = videos;
+        this.m_videos_ids = videos.map(function(e) {return e.id});
 
         this.m_player = new YT.Player(this.m_div_id, {
             height: this.m_h,
@@ -38,7 +39,7 @@
 
       _onPlayerReady(event) {
         this.m_player.mute();
-        this.m_player.loadPlaylist(this.m_videos.slice(0, this.m_cur_index+1), this.m_cur_index);
+        this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
       }
 
       _onPlayerStateChange(event) {
@@ -52,7 +53,7 @@
           state = 'ended'
           this.endVideo();
 
-          // log(this.m_videos.slice(0, this.m_cur_index+1), this.m_cur_index);
+          // log(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
         } else if (playerStatus == 1) {
           // state = 'playing'
         } else if (playerStatus == 2) {
@@ -64,13 +65,13 @@
         } else {
           // state = '_else_';
         }
-        // log (state, this.m_player.getPlaylistIndex(), vdata.title, vdata.author, vdata.video_id, this.m_videos);
+        // log (state, this.m_player.getPlaylistIndex(), vdata.title, vdata.author, vdata.video_id, this.m_videos_ids);
       }
 
       _playNextVideo() {
         var vdata = this.m_player.getVideoData();
         this.m_cur_index++;
-        this.m_player.loadPlaylist(this.m_videos.slice(0, this.m_cur_index+1), this.m_cur_index);
+        this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
       }
 
       _storeWatched() {

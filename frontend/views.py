@@ -110,7 +110,13 @@ def getVideos(request):
 
   videos = []
   for video in video_qs:
-    videos.append(video.y_video_id)
+    videos.append({
+      'id': video.y_video_id,
+      'title': video.title,
+      'published_at' : str(video.published_at),
+      'thumbnails' : video.thumbnails,
+      'description' : video.description,
+    })
 
   response_data = { 'videos' : videos }
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
