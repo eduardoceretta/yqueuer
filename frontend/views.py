@@ -20,6 +20,13 @@ from frontend.models import Channel, Video, RUserVideo
 from frontend.yqueuer_api import searchChannel
 
 
+
+def _markWatched(user, video):
+  uservideo, created = user.ruservideo_set.get_or_create(video = video)
+  uservideo.watched = True
+  uservideo.watched_date = timezone.now()
+  uservideo.save()
+
 ##################################
 def index(request):
   rand = random.randint(10,80)
@@ -116,10 +123,7 @@ def markWatched(request):
   user = request.user
 
   video = Video.objects.get(y_video_id = y_video_id)
-  uservideo, created = user.ruservideo_set.get_or_create(video = video)
-  uservideo.watched = True
-  uservideo.watched_date = timezone.now()
-  uservideo.save()
+  _markWatched(user, video)
 
   response_data = {'success': True}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
@@ -179,26 +183,28 @@ def addChannel(request):
 ##################################
 @login_required
 def bulkMarkWatched(request):
-  print >>sys.stderr, request.user
-    ,request.POST.has_key('channel_name'), request.GET.has_key('channel_name')
-    ,request.POST.has_key('until_y_video_id'), request.GET.has_key('until_y_video_id')
+  # print >>sys.stderr, request.user, request.POST.has_key('channel_name'), request.GET.has_key('channel_name'), request.POST.has_key('until_y_video_id'), request.GET.has_key('until_y_video_id')
 
-  # response_data = {'error' : "error"}
-  # channel = None
+  response_data = {'error' : "error"}
+  channel = None
 
-  # user = request.user
-  # channel_name = request.GET['channel_name']
-  # until_y_video_id = request.GET('until_y_video_id')
+  user = request.user
+  channel_name = request.GET['channel_name']
+  until_y_video_id = request.GET['until_y_video_id']
 
-  # channel_qs = Channel.objects.filter(name = channel_name)
+  channel_qs = Channel.objects.filter(name = channel_name)
 
-  # if len(channel_qs) > 0 :
-  #   channel = channel_qs[0]
-  # else :
-  #   response_data = {'error' : "can't find channel"}
-  #   return HttpResponse(json.dumps(response_data), content_type = "application/json")
+  if len(channel_qs) > 0 :
+    channel = channel_qs[0]
+  else :
+    response_data = {'error' : "can't find channel"}
+    return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
-  # until_video = Video.objects.get(y_video_id = until_y_video_id)
-  # user.ruservideo_set.filter(published_at__lte = until_video.published_at)
+  until_video = Video.objects.get(y_video_id = until_y_video_id)
+  videos = Video.objects.filter(channel = channel, published_at__lte = until_video.published_at)
+  for v in videos:
+    _markWatched(user, v)
 
-  # return HttpResponse(json.dumps(response_data), content_type = "application/json")
+  response_data = {'success' : True, 'data' : { 'channel' : channel_name, 'marked' : len(videos) }}
+
+  return HttpResponse(json.dumps(response_data), content_type = "application/json")

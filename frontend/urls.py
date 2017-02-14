@@ -8,6 +8,7 @@ urlpatterns = [
     # APIS
     url(r'^api/get_videos/$', views.getVideos, name = 'get_videos'),
     url(r'^api/mark_watched/$', views.markWatched, name = 'mark_watched'),
+    url(r'^api/bulk_mark_watched/$', views.bulkMarkWatched, name = 'bulk_mark_watched'),
     # url(r'^api/update_library/$', views.updateLibrary, name = 'update_library'),
     url(r'^api/add_channel/$', views.addChannel, name = 'add_channel'),
     # Authentication
