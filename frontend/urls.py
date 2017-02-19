@@ -5,11 +5,12 @@ from . import views
 urlpatterns = [
     url(r'^$', views.index, name = 'index'),
     url(r'^player/$', views.player, name = 'player'),
+    url(r'^manage/$', views.manage, name = 'manage'),
     # APIS
     url(r'^api/get_videos/$', views.getVideos, name = 'get_videos'),
     url(r'^api/mark_watched/$', views.markWatched, name = 'mark_watched'),
     url(r'^api/bulk_mark_watched/$', views.bulkMarkWatched, name = 'bulk_mark_watched'),
-    # url(r'^api/update_library/$', views.updateLibrary, name = 'update_library'),
+    url(r'^api/update_channel_library/$', views.updateChannelLibrary, name = 'update_channel_library'),
     url(r'^api/add_channel/$', views.addChannel, name = 'add_channel'),
     # Authentication
     url(r'^register/$', views.register, name = 'register'),

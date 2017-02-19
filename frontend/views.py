@@ -17,7 +17,8 @@ from django.db.models import Q
 from frontend.forms import UserForm
 from frontend.models import Channel, Video, RUserVideo
 
-from frontend.yqueuer_api import searchChannel
+from frontend.yqueuer_api import searchChannel, getVideosFromPlaylist
+
 
 
 
@@ -27,7 +28,9 @@ def _markWatched(user, video):
   uservideo.watched_date = timezone.now()
   uservideo.save()
 
-##################################
+##############################################
+# Pages
+##############################################
 def index(request):
   rand = random.randint(10,80)
   if rand == 42:
@@ -95,8 +98,15 @@ def player(request):
   context = {  }
   return render(request, 'frontend/player.html', context)
 
-
 ##################################
+@login_required
+def manage(request):
+  context = {  }
+  return render(request, 'frontend/manage.html', context)
+
+##############################################
+# API
+##############################################
 @login_required
 def getVideos(request):
   user = request.user
@@ -137,23 +147,30 @@ def markWatched(request):
 
 
 ##################################
-# @login_required
-# def updateLibrary(request):
-#   user = request.user
+@login_required
+def updateChannelLibrary(request):
+  response_data = {'error' : "can't find channel"}
+  channel = None
 
-#   # Move to Constants
-#   date_format = '%Y-%m-%d %H:%M:%S'
-#   for c in user.channel_set.all():
-#     # CALL retrieve videos from c
-#     #HARDCODED
-#     video_list = (('Chbm84sCBAw', '2016-01-01 01:00:00'), ('w1feICb-HRE', '2016-01-01 01:00:00'), ('UfYpxF32EZo', '2016-01-01 01:00:00')) #HARDCODED
-#     #Insert Videos into VideoTable
-#     for v in video_list:
-#       published_at = pytz.utc.localize(datetime.datetime.strptime(v[1], date_format))
-#       video = Video.objects.update_or_create(y_video_id = v[0], channel = c, published_at = published_at)
+  channel_name = request.POST['channel_name']
+  channel_qs = Channel.objects.filter(name = channel_name)
 
-#   response_data = {'success': True}
-#   return HttpResponse(json.dumps(response_data), content_type = "application/json")
+  if len(channel_qs) > 0 :
+    channel = channel_qs[0]
+  else :
+    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+  videos = getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], channel.playlist_uploads_id)
+
+  for v in videos:
+    Video.objects.update_or_create(
+      y_video_id = v["id"], channel = channel, published_at = v["published_at"],
+      title = v["title"], thumbnails = v["thumbnails"],
+      description = v["description"], position = v["position"]
+    )
+
+  response_data = {'success': True, 'data' : { 'channel' : channel_name, 'updated' : len(videos) }}
+  return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 
 ##################################
@@ -165,20 +182,23 @@ def addChannel(request):
   channel = None
 
   user = request.user
-  channel_name = request.GET['channel_name']
+  channel_name = request.POST['channel_name']
   channel_qs = Channel.objects.filter(name = channel_name)
 
   if len(channel_qs) > 0 :
     channel = channel_qs[0]
   else :
-    result = searchChannel(settings.SECRETS['YOUTUBE_API_KEY'], request.GET['channel_name'])
-    channel = Channel.objects.create(
-      y_channel_id = result['id'],
-      playlist_uploads_id = result['playlist_uploads_id'],
-      title = result['title'],
-      name = result['name'],
-      thumbnails = result['thumbnails']
-    )
+    result = searchChannel(settings.SECRETS['YOUTUBE_API_KEY'], channel_name)
+    if result :
+      channel = Channel.objects.create(
+        y_channel_id = result['id'],
+        playlist_uploads_id = result['playlist_uploads_id'],
+        title = result['title'],
+        name = result['name'],
+        thumbnails = result['thumbnails']
+      )
+    else :
+      return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
   if channel :
     user.channel_set.add(channel)
@@ -194,10 +214,15 @@ def bulkMarkWatched(request):
 
   response_data = {'error' : "error"}
   channel = None
+  until_video = None
 
   user = request.user
-  channel_name = request.GET['channel_name']
-  until_y_video_id = request.GET['until_y_video_id']
+  channel_name = request.POST['channel_name']
+  until_y_video_id = request.POST['until_y_video_id']
+
+  if not channel_name or not until_y_video_id:
+    response_data = {'error' : "Invalid parameters"}
+    return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
   channel_qs = Channel.objects.filter(name = channel_name)
 
@@ -207,7 +232,13 @@ def bulkMarkWatched(request):
     response_data = {'error' : "can't find channel"}
     return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
-  until_video = Video.objects.get(y_video_id = until_y_video_id)
+  until_video_qs = Video.objects.filter(y_video_id = until_y_video_id)
+  if len(until_video_qs) > 0 :
+    until_video = until_video_qs[0]
+  else :
+    response_data = {'error' : "can't find video"}
+    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
   videos = Video.objects.filter(channel = channel, published_at__lte = until_video.published_at)
   for v in videos:
     _markWatched(user, v)
