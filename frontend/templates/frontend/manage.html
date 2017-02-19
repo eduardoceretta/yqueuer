@@ -30,6 +30,15 @@
     </span>
   </div>
 
+  <div id="get_channels">
+    <span>
+      Get Channels:
+      <span id="get_channels_list" style="display:inline-block"></span>
+      <button id="get_channels_submit"> Submit </button>
+      <span id="get_channels_result"></span>
+    </span>
+  </div>
+
 
   <script type="text/javascript">
     function log() {
@@ -142,6 +151,60 @@
         });
       });
 
+      var get_channels = {
+        'div' : $("#get_channels"),
+        'channels_list' : $("#get_channels_list"),
+        'submit' : $("#get_channels_submit"),
+        'result' : $("#get_channels_result"),
+      }
+      get_channels.submit.on('click', function(e) {
+        log ('get_channels.submit');
+        get_channels.channels_list.text('');
+        get_channels.result.text('processing...');
+        get_channels.div.find(":input").attr("disabled", true);
+        $.ajax({
+          method: "GET",
+          url: "/api/get_channels/",
+          headers: {'X-CSRFToken': '{{ csrf_token }}'},
+          success: function(result){
+            get_channels.div.find(":input").attr("disabled", false);
+            if(result.success) {
+              get_channels.result.text('success');
+              channels = result.data.channels;
+              var list = $('<ul>');
+
+              for(var i = 0; i < channels.length; i++) {
+                  var item = $('<li>');
+                  var thumbnail = $('<img class="channel_thumbnail">');
+                  thumbnail.attr('src', channels[i].thumbnails);
+                  var title = $('<span>');
+                  title.text(channels[i].title);
+
+                  item.append(thumbnail);
+                  item.append(title);
+
+                  list.append(item);
+              }
+
+              get_channels.channels_list.append(list);
+            } else if(result.error) {
+              get_channels.result.text('error: ' + result.error);
+            }
+          },
+          error: function(xhr,status,error){
+            log('get_channels','error', xhr,status,error);
+            get_channels.div.find(":input").attr("disabled", false);
+            get_channels.result.text('error');
+          }
+        });
+      });
+
     });
   </script>
+
+  <style type="text/css">
+    .channel_thumbnail {
+        height: 50px;
+    }
+  </style>
 {% endblock %}

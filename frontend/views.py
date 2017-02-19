@@ -132,6 +132,26 @@ def getVideos(request):
   response_data = { 'videos' : videos }
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
+##################################
+@login_required
+def getChannels(request):
+  user = request.user
+
+  # Select videos, from user's channel list, with no entry on RUserVideo for that user or it has but watched is false
+  u_channels = user.channel_set.all()
+
+  channels = []
+  for channel in u_channels:
+    channels.append({
+      'id': channel.y_channel_id,
+      'title': channel.title,
+      'name': channel.name,
+      'thumbnails' : channel.thumbnails,
+      'imported_date' : str(channel.imported_date),
+    })
+
+  response_data = {'success': True, 'data' : {'channels' : channels} }
+  return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 ##################################
 @login_required
