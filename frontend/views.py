@@ -182,14 +182,18 @@ def updateChannelLibrary(request):
 
   videos = getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], channel.playlist_uploads_id)
 
+  added = 0
   for v in videos:
-    Video.objects.update_or_create(
-      y_video_id = v["id"], channel = channel, published_at = v["published_at"],
-      title = v["title"], thumbnails = v["thumbnails"],
-      description = v["description"], position = v["position"]
-    )
+    video_qs = Video.objects.filter(y_video_id = v["id"])
+    if len(video_qs) == 0 :
+      Video.objects.update_or_create(
+        y_video_id = v["id"], channel = channel, published_at = v["published_at"],
+        title = v["title"], thumbnails = v["thumbnails"],
+        description = v["description"], position = v["position"]
+      )
+      added+=1
 
-  response_data = {'success': True, 'data' : { 'channel' : channel_name, 'updated' : len(videos) }}
+  response_data = {'success': True, 'data' : { 'channel' : channel_name, 'updated' : added }}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 

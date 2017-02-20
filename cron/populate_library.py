@@ -41,10 +41,12 @@ for c in Channel.objects.all():
   pprint.pprint("  Got videos: %d" % len(videos))
   for v in videos:
     pprint.pprint("  Processing video: %s (%s) %s" % (v["title"], v["id"], v["published_at"]))
-    Video.objects.update_or_create(
-      y_video_id = v["id"], channel = c, published_at = v["published_at"],
-      title = v["title"], thumbnails = v["thumbnails"],
-      description = v["description"], position = v["position"]
-    )
+    video_qs = Video.objects.filter(y_video_id = v["id"])
+    if len(video_qs) == 0 :
+      Video.objects.update_or_create(
+        y_video_id = v["id"], channel = c, published_at = v["published_at"],
+        title = v["title"], thumbnails = v["thumbnails"],
+        description = v["description"], position = v["position"]
+      )
 
 pprint.pprint("Total videos: %d" %  len(Video.objects.all()))

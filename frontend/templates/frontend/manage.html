@@ -138,7 +138,7 @@
           success: function(result){
             update_channel_library.div.find(":input").attr("disabled", false);
             if(result.success) {
-              update_channel_library.result.text('success');
+              update_channel_library.result.text('success: ' + result.data.updated + ' videos updated');
             } else if(result.error) {
               update_channel_library.result.text('error: ' + result.error);
             }
@@ -178,7 +178,7 @@
                   var thumbnail = $('<img class="channel_thumbnail">');
                   thumbnail.attr('src', channels[i].thumbnails);
                   var title = $('<span>');
-                  title.text(channels[i].title);
+                  title.text(channels[i].name);
 
                   item.append(thumbnail);
                   item.append(title);
