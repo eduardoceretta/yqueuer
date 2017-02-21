@@ -4,6 +4,21 @@
 {% block body_block %}
   <script src="{% static "javascript/dev_jquery-3.1.1.js" %}"></script>
 
+  <div id="channel_form_div">
+    <form method="get">
+{% for channel in all_channels %}
+      <img class="channel_thumbnail" src={{ channel.thumbnails }}>
+  {% if channel.name in channel_list %}
+      <input type="checkbox" checked="True" name="channel" value="{{ channel.name }}">{{ channel.name }}
+  {% else %}
+      <input type="checkbox" name="channel" value="{{ channel.name }}">{{ channel.name }}
+  {% endif %}
+      <br>
+{% endfor %}
+      <input type="submit" value="Submit">
+    </form>
+  </div>
+
   <div id="player"></div>
 
   <button onclick="Skip()">Skip</button>
@@ -96,10 +111,12 @@
     function FetchVideos(success_cb, error_cb) {
       log('FetchVideos');
       $.ajax({
-        method: "POST",
+        method: "GET",
         url: "/api/get_videos/",
         headers: {'X-CSRFToken': '{{ csrf_token }}'},
-        data: { },
+{% if channel_list %}
+        data: { 'channel_list' : '{{ channel_list }}' },
+{% endif %}
         success:  function(result){
           log('FetchVideos','success', result);
           videos = result.data.videos;

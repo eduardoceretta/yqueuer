@@ -28,6 +28,22 @@ def _markWatched(user, video):
   uservideo.watched_date = timezone.now()
   uservideo.save()
 
+def _getChannels(user):
+  # Select videos, from user's channel list, with no entry on RUserVideo for that user or it has but watched is false
+  u_channels = user.channel_set.all()
+
+  channels = []
+  for channel in u_channels:
+    channels.append({
+      'id': channel.y_channel_id,
+      'title': channel.title,
+      'name': channel.name,
+      'thumbnails' : channel.thumbnails,
+      'imported_date' : str(channel.imported_date),
+    })
+
+  return channels
+
 ##############################################
 # Pages
 ##############################################
@@ -95,7 +111,15 @@ def user_logout(request):
 ##################################
 @login_required
 def player(request):
-  context = {  }
+  channel_list = None
+  if request.GET.has_key('channel_list') :
+    channel_list = request.GET['channel_list']
+  elif request.GET.has_key('channel') :
+    channel_list = ",".join(request.GET.getlist('channel'))
+
+  all_channels = _getChannels(request.user)
+
+  context = { 'channel_list' : channel_list, 'all_channels' : all_channels }
   return render(request, 'frontend/player.html', context)
 
 ##################################
@@ -144,20 +168,7 @@ def getVideos(request):
 ##################################
 @login_required
 def getChannels(request):
-  user = request.user
-
-  # Select videos, from user's channel list, with no entry on RUserVideo for that user or it has but watched is false
-  u_channels = user.channel_set.all()
-
-  channels = []
-  for channel in u_channels:
-    channels.append({
-      'id': channel.y_channel_id,
-      'title': channel.title,
-      'name': channel.name,
-      'thumbnails' : channel.thumbnails,
-      'imported_date' : str(channel.imported_date),
-    })
+  channels = _getChannels(request.user)
 
   response_data = {'success': True, 'data' : {'channels' : channels} }
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
