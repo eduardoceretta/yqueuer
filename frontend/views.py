@@ -111,8 +111,17 @@ def manage(request):
 def getVideos(request):
   user = request.user
 
+  channel_list = []
+  if request.GET.has_key('channel_list') :
+    channel_list = request.GET['channel_list'].split(',')
+
   # Select videos, from user's channel list, with no entry on RUserVideo for that user or it has but watched is false
-  u_channels = user.channel_set.all()
+  u_channels = None
+  if not channel_list:
+    u_channels = user.channel_set.all()
+  else :
+    u_channels = user.channel_set.filter(name__in = channel_list)
+
   video_qs = Video.objects.filter(
     Q( channel__in = u_channels )
     & ( ~Q( users = user) | Q( users = user, ruservideo__watched = False))
@@ -129,7 +138,7 @@ def getVideos(request):
       'description' : video.description,
     })
 
-  response_data = { 'videos' : videos }
+  response_data = { 'videos' : videos , 'data' : {'channels' : map(lambda x: x.name, u_channels)}}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 ##################################
