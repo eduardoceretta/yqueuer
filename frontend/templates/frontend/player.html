@@ -102,7 +102,7 @@
         data: { },
         success:  function(result){
           log('FetchVideos','success', result);
-          videos = result.videos;
+          videos = result.data.videos;
           if (success_cb)
             success_cb();
         },

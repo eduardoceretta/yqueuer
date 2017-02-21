@@ -138,7 +138,7 @@ def getVideos(request):
       'description' : video.description,
     })
 
-  response_data = { 'videos' : videos , 'data' : {'channels' : map(lambda x: x.name, u_channels)}}
+  response_data = {'success': True, 'data' : {'channels' : map(lambda x: x.name, u_channels), 'videos' : videos }}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 ##################################
