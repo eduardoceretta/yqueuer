@@ -18,17 +18,24 @@ import re
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def readSecrets():
-    f = open(SECRETS_PATH, 'r')
     config = SECRETS_EXPECTED_CONFIG.copy()
-    for line in f:
-        matches = re.search('^(\w*)=(.*)$', line)
-        if matches:
-            key = matches.group(1)
-            if SECRETS_EXPECTED_CONFIG.has_key(key):
-                value = matches.group(2)
-                config[key] = value
-            else :
-                print >>sys.stderr, 'SECRETS CONFIG: Ignoring:', key
+    for key in config:
+        if os.environ.get(key):
+            config[key] = os.environ.get(key)
+            print >>sys.stderr, 'SECRETS CONFIG: adding:', key, os.environ.get(key)
+        else :
+            print >>sys.stderr, 'SECRETS CONFIG: Ignoring:', key
+
+    # f = open(SECRETS_PATH, 'r')
+    # for line in f:
+    #     matches = re.search('^(\w*)=(.*)$', line)
+    #     if matches:
+    #         key = matches.group(1)
+    #         if SECRETS_EXPECTED_CONFIG.has_key(key):
+    #             value = matches.group(2)
+    #             config[key] = value
+    #         else :
+    #             print >>sys.stderr, 'SECRETS CONFIG: Ignoring:', key
 
     return config
 
