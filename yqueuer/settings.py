@@ -23,7 +23,6 @@ def readSecrets():
     for key in config:
         if os.environ.get(key):
             config[key] = os.environ.get(key)
-            print >>sys.stderr, 'SECRETS CONFIG: adding:', key, os.environ.get(key)
         else :
             print >>sys.stderr, 'SECRETS CONFIG: Ignoring:', key
 
