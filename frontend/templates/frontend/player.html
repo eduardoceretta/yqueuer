@@ -31,34 +31,22 @@
       console.log('_Y_',arguments);
     }
 
-    class YQ_Player {
-      constructor (div_id, w, h, videos, opts) {
-        this.m_div_id = div_id;
-        this.m_w = w;
-        this.m_h = h;
-        this.m_cur_index = 0;
-        this.m_store_watched_cb = opts.store_watched;
+    function YQ_Player (div_id, w, h, videos, opts) {
+      this.m_div_id = div_id;
+      this.m_w = w;
+      this.m_h = h;
+      this.m_cur_index = 0;
+      this.m_store_watched_cb = opts.store_watched;
 
-        this.m_videos_dataset = videos;
-        this.m_videos_ids = videos.map(function(e) {return e.id});
+      this.m_videos_dataset = videos;
+      this.m_videos_ids = videos.map(function(e) {return e.id});
 
-        this.m_player = new YT.Player(this.m_div_id, {
-            height: this.m_h,
-            width: this.m_w,
-            events: {
-              'onReady': this._onPlayerReady.bind(this),
-              'onStateChange': this._onPlayerStateChange.bind(this)
-            }
-        });
-        log ('new', div_id, w, h, opts, this);
-      }
-
-      _onPlayerReady(event) {
+      this._onPlayerReady = function(event) {
         this.m_player.mute();
         this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
       }
 
-      _onPlayerStateChange(event) {
+      this._onPlayerStateChange = function(event) {
         var playerStatus = event.data;
         var state;
         var vdata = this.m_player.getVideoData();
@@ -84,25 +72,36 @@
         // log (state, this.m_player.getPlaylistIndex(), vdata.title, vdata.author, vdata.video_id, this.m_videos_ids);
       }
 
-      _playNextVideo() {
+      this._playNextVideo = function() {
         var vdata = this.m_player.getVideoData();
         this.m_cur_index++;
         this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
       }
 
-      _storeWatched() {
+      this._storeWatched = function() {
         var vdata = this.m_player.getVideoData();
         this.m_store_watched_cb(vdata.video_id);
       }
 
-      skipVideo() {
-        this._playNextVideo();
-      }
+      this.m_player = new YT.Player(this.m_div_id, {
+          height: this.m_h,
+          width: this.m_w,
+          events: {
+            'onReady': this._onPlayerReady.bind(this),
+            'onStateChange': this._onPlayerStateChange.bind(this)
+          }
+      });
 
-      endVideo() {
-        this._storeWatched();
-        this._playNextVideo();
-      }
+      log ('new', div_id, w, h, opts, this);
+    }
+
+    YQ_Player.prototype.skipVideo = function() {
+      this._playNextVideo();
+    }
+
+    YQ_Player.prototype.endVideo = function() {
+      this._storeWatched();
+      this._playNextVideo();
     }
 
     var player;
