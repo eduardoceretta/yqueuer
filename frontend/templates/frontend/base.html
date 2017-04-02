@@ -10,11 +10,11 @@
           url: "/api/post_jserror/",
           headers: {'X-CSRFToken': '{{ csrf_token }}'},
           data: {
-            'msg' : msg,
-            'url' : m_url,
-            'lineNo' : lineNo,
-            'columnNo' : columnNo,
-            'error' : error
+            'msg' : msg || 'unknown',
+            'url' : m_url || 'unknown',
+            'lineNo' : lineNo || 'unknown',
+            'columnNo' : columnNo || 'unknown',
+            'error' : error || 'unknown'
           },
           success:  function(result){
             // console.log('post_jserror','success', result);
