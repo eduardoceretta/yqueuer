@@ -146,7 +146,7 @@ def getVideos(request):
   else :
     u_channels = user.channel_set.filter(name__in = channel_list)
 
-  video_qs = Video.objects.filter(
+  video_qs = Video.objects.select_related('channel').filter(
     Q( channel__in = u_channels )
     & ( ~Q( users = user) | Q( users = user, ruservideo__watched = False))
   ).order_by('published_at')
