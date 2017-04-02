@@ -290,3 +290,9 @@ def bulkMarkWatched(request):
   response_data = {'success' : True, 'data' : { 'channel' : channel_name, 'marked' : len(videos) }}
 
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+def postJSError(request):
+  print >>sys.stderr, 'JSERROR: ', request.POST['msg'], request.POST['url'], request.POST['lineNo'],request.POST['columnNo'],request.POST['error']
+
+  response_data = {'success': True}
+  return HttpResponse(json.dumps(response_data), content_type = "application/json")

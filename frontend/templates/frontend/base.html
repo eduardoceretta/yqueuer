@@ -3,6 +3,30 @@
 <html>
   <head>
     <title>{% block title %}Yqueuer{% endblock %}</title>
+    <script type="text/javascript">
+      window.onerror = function (msg, m_url, lineNo, columnNo, error) {
+        $.ajax({
+          method: "POST",
+          url: "/api/post_jserror/",
+          headers: {'X-CSRFToken': '{{ csrf_token }}'},
+          data: {
+            'msg' : msg,
+            'url' : m_url,
+            'lineNo' : lineNo,
+            'columnNo' : columnNo,
+            'error' : error
+          },
+          success:  function(result){
+            // console.log('post_jserror','success', result);
+          },
+          error: function(xhr,status,error){
+            // console.log('post_jserror','success', xhr,status,error);
+          }
+        });
+
+        return false;
+      }
+    </script>
   </head>
 
   <body>

@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^api/bulk_mark_watched/$', views.bulkMarkWatched, name = 'bulk_mark_watched'),
     url(r'^api/update_channel_library/$', views.updateChannelLibrary, name = 'update_channel_library'),
     url(r'^api/add_channel/$', views.addChannel, name = 'add_channel'),
+    url(r'^api/post_jserror/$', views.postJSError, name = 'post_jserror'),
     # Authentication
     url(r'^register/$', views.register, name = 'register'),
     url(r'^login/$', views.user_login, name = 'login'),
