@@ -24,6 +24,7 @@ def searchChannelById(dev_key, y_channel_id):
       'id' : search_result["id"],
       'title' : search_result["snippet"]["title"],
       'name' : search_result["snippet"].get("customUrl", search_result["snippet"]["title"]),
+      'username' : None,
       'thumbnails' : search_result["snippet"]["thumbnails"]["high"]["url"],
       'playlist_uploads_id' : search_result["contentDetails"]["relatedPlaylists"]["uploads"],
     }
@@ -31,7 +32,7 @@ def searchChannelById(dev_key, y_channel_id):
 
   return channels[0] if len(channels) > 0 else None
 
-def searchChannel(dev_key, channel_name):
+def searchChannelByUsername(dev_key, username):
   DEVELOPER_KEY = dev_key
   YOUTUBE_API_SERVICE_NAME = "youtube"
   YOUTUBE_API_VERSION = "v3"
@@ -39,7 +40,7 @@ def searchChannel(dev_key, channel_name):
     developerKey=DEVELOPER_KEY)
   search_response = youtube.channels().list(
     part='contentDetails,snippet',
-    forUsername=channel_name
+    forUsername=username
   ).execute()
 
   channels = []
@@ -48,6 +49,7 @@ def searchChannel(dev_key, channel_name):
       'id' : search_result["id"],
       'title' : search_result["snippet"]["title"],
       'name' : search_result["snippet"].get("customUrl", search_result["snippet"]["title"]),
+      'username' : username,
       'thumbnails' : search_result["snippet"]["thumbnails"]["high"]["url"],
       'playlist_uploads_id' : search_result["contentDetails"]["relatedPlaylists"]["uploads"],
     }

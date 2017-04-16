@@ -7,7 +7,9 @@
   <div id="add_channel">
     <span>
       Add Channel:
-      <input id="add_channel_channel" type="text" name="channel_name" placeholder="Channel Name">
+      <input id="add_channel_channel_id" type="text" name="y_channel_id" placeholder="Channel Id"> OR
+      <input id="add_channel_channel_username" type="text" name="channel_username" placeholder="Channel UserName">
+      <input id="add_channel_last_y_video_id" type="text" name="last_y_video_id" placeholder="Starting After Video ID">
       <button id="add_channel_submit"> Submit </button>
       <span id="add_channel_result"></span>
     </span>
@@ -19,15 +21,6 @@
       <input id="update_channel_library_channel" type="text" name="channel_name" placeholder="Channel Name">
       <button id="update_channel_library_submit"> Submit </button>
       <span id="update_channel_library_result"></span>
-    </span>
-  </div>
-  <div id="bulk_mark">
-    <span>
-      Mark videos as watched:
-      <input id="bulk_mark_channel" type="text" name="channel_name" placeholder="Channel Name">
-      <input id="bulk_mark_until_y_video_id" type="text" name="until_y_video_id" placeholder="Until Video ID">
-      <button id="bulk_mark_submit"> Submit </button>
-      <span id="bulk_mark_result"></span>
     </span>
   </div>
   -->
@@ -49,61 +42,33 @@
 
     $( document ).ready(function() {
       log( "manage ready!" );
-      // var bulk_mark = {
-      //   'div' : $("#bulk_mark"),
-      //   'channel_name' : $("#bulk_mark_channel"),
-      //   'until_y_video_id' : $("#bulk_mark_until_y_video_id"),
-      //   'submit' : $("#bulk_mark_submit"),
-      //   'result' : $("#bulk_mark_result"),
-      // };
-      // bulk_mark.submit.on('click', function(e) {
-      //   log ('bulk_mark.submit');
-      //   log(bulk_mark.channel_name.val());
-      //   log(bulk_mark.until_y_video_id.val());
-      //   var channel_name = bulk_mark.channel_name.val();
-      //   var until_y_video_id = bulk_mark.until_y_video_id.val();
-      //   bulk_mark.result.text('processing...');
-      //   bulk_mark.div.find(":input").attr("disabled", true);
-      //   $.ajax({
-      //     method: "POST",
-      //     url: "/api/bulk_mark_watched/",
-      //     headers: {'X-CSRFToken': '{{ csrf_token }}'},
-      //     data: { 'channel_name' : channel_name,
-      //             'until_y_video_id': until_y_video_id,
-      //     },
-      //     success: function(result){
-      //       bulk_mark.div.find(":input").attr("disabled", false);
-      //       if(result.success) {
-      //         bulk_mark.result.text('success: marked ' + result.data.marked + ' videos');
-      //       } else if(result.error) {
-      //         bulk_mark.result.text('error: ' + result.error);
-      //       }
-      //     },
-      //     error: function(xhr,status,error){
-      //       log('bulk_mark','error', xhr,status,error);
-      //       bulk_mark.div.find(":input").attr("disabled", false);
-      //       bulk_mark.result.text('error');
-      //     }
-      //   });
-      // });
-
       var add_channel = {
         'div' : $("#add_channel"),
-        'channel_name' : $("#add_channel_channel"),
+        'y_channel_id' : $("#add_channel_channel_id"),
+        'channel_username' : $("#add_channel_channel_username"),
+        'last_y_video_id' : $("#add_channel_last_y_video_id"),
         'submit' : $("#add_channel_submit"),
         'result' : $("#add_channel_result"),
       }
       add_channel.submit.on('click', function(e) {
         log ('add_channel.submit');
-        log(add_channel.channel_name.val());
-        var channel_name = add_channel.channel_name.val();
+        log(add_channel.y_channel_id.val());
+        log(add_channel.channel_username.val());
+        log(add_channel.last_y_video_id.val());
+        var y_channel_id = add_channel.y_channel_id.val();
+        var channel_username = add_channel.channel_username.val();
+        var last_y_video_id = add_channel.last_y_video_id.val();
         add_channel.result.text('processing...');
         add_channel.div.find(":input").attr("disabled", true);
         $.ajax({
           method: "POST",
           url: "/api/add_channel/",
           headers: {'X-CSRFToken': '{{ csrf_token }}'},
-          data: { 'channel_name' : channel_name },
+          data: {
+            'y_channel_id' : y_channel_id,
+            'channel_username' : channel_username,
+            'last_y_video_id': last_y_video_id,
+          },
           success: function(result){
             add_channel.div.find(":input").attr("disabled", false);
             if(result.success) {
@@ -180,7 +145,7 @@
                   var thumbnail = $('<img class="channel_thumbnail">');
                   thumbnail.attr('src', channels[i].thumbnails);
                   var title = $('<span>');
-                  title.text(channels[i].name);
+                  title.text(channels[i].title + ' (user: ' + channels[i].username + ') [id: ' + channels[i].id + ']');
 
                   item.append(thumbnail);
                   item.append(title);

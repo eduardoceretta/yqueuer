@@ -8,10 +8,10 @@
     <form method="get">
 {% for channel in all_channels %}
       <img class="channel_thumbnail" src={{ channel.thumbnails }}>
-  {% if channel.name in channel_list %}
-      <input type="checkbox" checked="True" name="channel" value="{{ channel.name }}">{{ channel.name }}
+  {% if channel.title in channel_list %}
+      <input type="checkbox" checked="True" name="channel" value="{{ channel.title }}">{{ channel.title }}
   {% else %}
-      <input type="checkbox" name="channel" value="{{ channel.name }}">{{ channel.name }}
+      <input type="checkbox" name="channel" value="{{ channel.title }}">{{ channel.title }}
   {% endif %}
       <br>
 {% endfor %}
@@ -184,7 +184,7 @@
           var item = document.createElement('li');
 
           // Set its contents:
-          item.appendChild(document.createTextNode(videos[i].channel_name + " - " + videos[i].title));
+          item.appendChild(document.createTextNode(videos[i].channel_title + " - " + videos[i].title));
 
           // Add it to the list:
           list.appendChild(item);
