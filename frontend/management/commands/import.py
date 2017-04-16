@@ -24,31 +24,15 @@ class Command(BaseCommand):
     self.pp = pprint.PrettyPrinter(stream = self.stdout)
 
 
-  def add_arguments(self, parser):
-    parser.add_argument('channel_name', nargs='*', type=str)
-    parser.add_argument('--user', nargs='*', type=str)
-
   def handle(self, *args, **options):
     self._dbStats()
     self._print("\n")
     self._print("Starting Populate Library")
 
-    self._parseOptions(**options)
     self._trim()
     self._import()
     self._print("Done Populate Library")
-    # self._repopulate()
     self._dbStats()
-
-
-  def _parseOptions(self, **options):
-    self._print("_parseOptions", 1)
-    channel_names = options['channel_name']
-    usernames = options['user']
-
-    self._print(pprint.pformat(channel_names), 2)
-    self._print(pprint.pformat(usernames), 2)
-    self._print("!!Ignoring Options!", 2)
 
   def _trim(self):
     self._print("\n")
@@ -159,54 +143,3 @@ class Command(BaseCommand):
     self._print("UserVideo: %d" % num_unique_uservideo, 2)
     self._print("Total: %d" % total, 2)
 
-
-
-  # def _repopulate(self):
-  #   s = User.objects.get(username = 'slart')
-  #   self._print(pprint.pformat(s))
-  #   # self._addChannel(s, 'UC2C_jShtL725hvbm1arSV9w', 'G3wLQz-LgrM')   # channel_name = 'greymatter'
-  #   # self._addChannel(s, 'UC6nSFpj9HTCZ5t-N3Rm3-HA', 'VhVtK7UhKbI')   # channel_name = 'vsauce1'
-  #   # self._addChannel(s, 'UC7_gcs09iThXybpVgjHZ_7g', 'mht-1c4wc0Q')   # channel_name = 'pbsspacetime'
-  #   # self._addChannel(s, 'UCAuUUnT6oDeKwE6v1NGQxug', 'hLltkC-G5dY')   # channel_name = 'ted'
-  #   # self._addChannel(s, 'UCC552Sd-3nyi_tk2BudLUzA', 'zTeaOTkjut0')   # channel_name = 'AsapSCIENCE'
-  #   # self._addChannel(s, 'UCeiYXex_fwgYDonaTcSIk6w', 'oaOfeSJZ3lY')   # channel_name = 'minuteearth'
-  #   # self._addChannel(s, 'UCrMePiHCWG4Vwqv3t7W9EFg', 'kpF2ruHcpDM')   # channel_name = 'scishowspace'
-  #   # self._addChannel(s, 'UCsXVk37bltHxD1rDPwtNM8Q', 'czgOWmtGVGs')   # channel_name = 'inanutshell'
-  #   # self._addChannel(s, 'UCUHW94eEFW7hkUMVaZz4eDg', 'lHaX9asEXIo')   # channel_name = 'minutephysics'
-  #   # self._addChannel(s, 'UCUL-pmhmDcZDwsA4cX2HO5w', 'GYOe13IXO80')   # channel_name = 'phd'
-  #   # self._addChannel(s, 'UCZYTClx2T1of7BRZ86-8fow', 'GP-YJbGxe20')   # channel_name = 'scishow'
-
-  #   a = User.objects.get(username = 'alexandre.ceretta')
-  #   self._print(pprint.pformat(a))
-  #   # self._addChannel(a, 'UCB_zuUSmh_PVkqwkaDT-thA', 'D_bfwNwGx-o') #CEN
-  #   # self._addChannel(a, 'UCEWHPFNilsT0IfQfutVzsag', '1Eta61j0uTs') #portadosfundos
-  #   # self._addChannel(a, 'UCGozdt7Wbd15k7dWhvlmLUw', 'poQ_ILxvXbY') #cleanmyspace
-  #   # self._addChannel(a, 'UCI4I6ldZ0jWe7vXpUVeVcpg', 'kO8fZcO-458') #householdhackertv
-  #   # self._addChannel(a, 'UCOClvgLYa7g75eIaTdwj_vg', '1l97wjymVJU') #Consumer
-  #   # self._addChannel(a, 'UCWXCrItCF6ZgXrdozUS-Idw', 'oJ92tfQDnS4') #explosmentertainment
-
-
-  # def _addChannel(self, user, c_y_id, last_vid_y_vid_id):
-  #   self._print("Adding for user %s channel %s (%s)" % (user.username, c_y_id, last_vid_y_vid_id), 2)
-  #   channel_qs = Channel.objects.filter(name = c_y_id)
-
-  #   if len(channel_qs) > 0 :
-  #     channel = channel_qs[0]
-  #   else :
-  #     result = searchChannelById(settings.SECRETS['YOUTUBE_API_KEY'], c_y_id)
-  #     if result :
-  #       channel = Channel.objects.create(
-  #         y_channel_id = result['id'],
-  #         playlist_uploads_id = result['playlist_uploads_id'],
-  #         title = result['title'],
-  #         name = result['name'],
-  #         thumbnails = result['thumbnails']
-  #       )
-  #     else :
-  #       self._print("No channel found", 3)
-
-  #   if channel :
-  #     uc = user.ruserchannel_set.create(channel = channel)
-  #     uc.last_vid_y_vid_id = last_vid_y_vid_id
-  #     uc.save()
-  #     self._print("Added", 3)
