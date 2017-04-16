@@ -15,12 +15,9 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 
 from frontend.forms import UserForm
-from frontend.models import Channel, Video, RUserVideo
+from frontend.models import Channel, Video, RUserVideo, RUserChannel
 
 from frontend.yqueuer_api import searchChannel, getVideosFromPlaylist
-
-
-
 
 def _markWatched(user, video):
   uservideo, created = user.ruservideo_set.get_or_create(video = video)
@@ -39,7 +36,6 @@ def _getChannels(user):
       'title': channel.title,
       'name': channel.name,
       'thumbnails' : channel.thumbnails,
-      'imported_date' : str(channel.imported_date),
     })
 
   return channels
@@ -147,8 +143,7 @@ def getVideos(request):
     u_channels = user.channel_set.filter(name__in = channel_list)
 
   video_qs = Video.objects.select_related('channel').filter(
-    Q( channel__in = u_channels )
-    & ( ~Q( users = user) | Q( users = user, ruservideo__watched = False))
+    channel__in = u_channels, users = user, ruservideo__watched = False
   ).order_by('published_at')
 
   videos = []
@@ -187,34 +182,34 @@ def markWatched(request):
 
 
 ##################################
-@login_required
-def updateChannelLibrary(request):
-  response_data = {'error' : "can't find channel"}
-  channel = None
+# @login_required
+# def updateChannelLibrary(request):
+#   response_data = {'error' : "can't find channel"}
+#   channel = None
 
-  channel_name = request.POST['channel_name']
-  channel_qs = Channel.objects.filter(name = channel_name)
+#   channel_name = request.POST['channel_name']
+#   channel_qs = Channel.objects.filter(name = channel_name)
 
-  if len(channel_qs) > 0 :
-    channel = channel_qs[0]
-  else :
-    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+#   if len(channel_qs) > 0 :
+#     channel = channel_qs[0]
+#   else :
+#     return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
-  videos = getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], channel.playlist_uploads_id)
+#   videos = getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], channel.playlist_uploads_id)
 
-  added = 0
-  for v in videos:
-    video_qs = Video.objects.filter(y_video_id = v["id"])
-    if len(video_qs) == 0 :
-      Video.objects.update_or_create(
-        y_video_id = v["id"], channel = channel, published_at = v["published_at"],
-        title = v["title"], thumbnails = v["thumbnails"],
-        description = v["description"], position = v["position"]
-      )
-      added+=1
+#   added = 0
+#   for v in videos:
+#     video_qs = Video.objects.filter(y_video_id = v["id"])
+#     if len(video_qs) == 0 :
+#       Video.objects.update_or_create(
+#         y_video_id = v["id"], channel = channel, published_at = v["published_at"],
+#         title = v["title"], thumbnails = v["thumbnails"],
+#         description = v["description"], position = v["position"]
+#       )
+#       added+=1
 
-  response_data = {'success': True, 'data' : { 'channel' : channel_name, 'updated' : added }}
-  return HttpResponse(json.dumps(response_data), content_type = "application/json")
+#   response_data = {'success': True, 'data' : { 'channel' : channel_name, 'updated' : added }}
+#   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 
 ##################################
@@ -245,51 +240,50 @@ def addChannel(request):
       return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
   if channel :
-    user.channel_set.add(channel)
-    user.save()
+    user.ruserchannel_set.create(channel = channel)
     response_data = {'success': True}
 
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 ##################################
-@login_required
-def bulkMarkWatched(request):
-  # print >>sys.stderr, request.user, request.POST.has_key('channel_name'), request.GET.has_key('channel_name'), request.POST.has_key('until_y_video_id'), request.GET.has_key('until_y_video_id')
+# @login_required
+# def bulkMarkWatched(request):
+#   # print >>sys.stderr, request.user, request.POST.has_key('channel_name'), request.GET.has_key('channel_name'), request.POST.has_key('until_y_video_id'), request.GET.has_key('until_y_video_id')
 
-  response_data = {'error' : "error"}
-  channel = None
-  until_video = None
+#   response_data = {'error' : "error"}
+#   channel = None
+#   until_video = None
 
-  user = request.user
-  channel_name = request.POST['channel_name']
-  until_y_video_id = request.POST['until_y_video_id']
+#   user = request.user
+#   channel_name = request.POST['channel_name']
+#   until_y_video_id = request.POST['until_y_video_id']
 
-  if not channel_name or not until_y_video_id:
-    response_data = {'error' : "Invalid parameters"}
-    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+#   if not channel_name or not until_y_video_id:
+#     response_data = {'error' : "Invalid parameters"}
+#     return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
-  channel_qs = Channel.objects.filter(name = channel_name)
+#   channel_qs = Channel.objects.filter(name = channel_name)
 
-  if len(channel_qs) > 0 :
-    channel = channel_qs[0]
-  else :
-    response_data = {'error' : "can't find channel"}
-    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+#   if len(channel_qs) > 0 :
+#     channel = channel_qs[0]
+#   else :
+#     response_data = {'error' : "can't find channel"}
+#     return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
-  until_video_qs = Video.objects.filter(y_video_id = until_y_video_id)
-  if len(until_video_qs) > 0 :
-    until_video = until_video_qs[0]
-  else :
-    response_data = {'error' : "can't find video"}
-    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+#   until_video_qs = Video.objects.filter(y_video_id = until_y_video_id)
+#   if len(until_video_qs) > 0 :
+#     until_video = until_video_qs[0]
+#   else :
+#     response_data = {'error' : "can't find video"}
+#     return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
-  videos = Video.objects.filter(channel = channel, published_at__lte = until_video.published_at)
-  for v in videos:
-    _markWatched(user, v)
+#   videos = Video.objects.filter(channel = channel, published_at__lte = until_video.published_at)
+#   for v in videos:
+#     _markWatched(user, v)
 
-  response_data = {'success' : True, 'data' : { 'channel' : channel_name, 'marked' : len(videos) }}
+#   response_data = {'success' : True, 'data' : { 'channel' : channel_name, 'marked' : len(videos) }}
 
-  return HttpResponse(json.dumps(response_data), content_type = "application/json")
+#   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 def postJSError(request):
   print >>sys.stderr, 'JSERROR: ', request.POST['msg'], request.POST['url'], request.POST['lineNo'],request.POST['columnNo'],request.POST['error']

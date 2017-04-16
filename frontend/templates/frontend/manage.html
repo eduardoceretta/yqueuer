@@ -12,6 +12,7 @@
       <span id="add_channel_result"></span>
     </span>
   </div>
+  <!--
   <div id="update_channel_library">
     <span>
       Update Channel Library:
@@ -29,6 +30,7 @@
       <span id="bulk_mark_result"></span>
     </span>
   </div>
+  -->
 
   <div id="get_channels">
     <span>
@@ -47,43 +49,43 @@
 
     $( document ).ready(function() {
       log( "manage ready!" );
-      var bulk_mark = {
-        'div' : $("#bulk_mark"),
-        'channel_name' : $("#bulk_mark_channel"),
-        'until_y_video_id' : $("#bulk_mark_until_y_video_id"),
-        'submit' : $("#bulk_mark_submit"),
-        'result' : $("#bulk_mark_result"),
-      };
-      bulk_mark.submit.on('click', function(e) {
-        log ('bulk_mark.submit');
-        log(bulk_mark.channel_name.val());
-        log(bulk_mark.until_y_video_id.val());
-        var channel_name = bulk_mark.channel_name.val();
-        var until_y_video_id = bulk_mark.until_y_video_id.val();
-        bulk_mark.result.text('processing...');
-        bulk_mark.div.find(":input").attr("disabled", true);
-        $.ajax({
-          method: "POST",
-          url: "/api/bulk_mark_watched/",
-          headers: {'X-CSRFToken': '{{ csrf_token }}'},
-          data: { 'channel_name' : channel_name,
-                  'until_y_video_id': until_y_video_id,
-          },
-          success: function(result){
-            bulk_mark.div.find(":input").attr("disabled", false);
-            if(result.success) {
-              bulk_mark.result.text('success: marked ' + result.data.marked + ' videos');
-            } else if(result.error) {
-              bulk_mark.result.text('error: ' + result.error);
-            }
-          },
-          error: function(xhr,status,error){
-            log('bulk_mark','error', xhr,status,error);
-            bulk_mark.div.find(":input").attr("disabled", false);
-            bulk_mark.result.text('error');
-          }
-        });
-      });
+      // var bulk_mark = {
+      //   'div' : $("#bulk_mark"),
+      //   'channel_name' : $("#bulk_mark_channel"),
+      //   'until_y_video_id' : $("#bulk_mark_until_y_video_id"),
+      //   'submit' : $("#bulk_mark_submit"),
+      //   'result' : $("#bulk_mark_result"),
+      // };
+      // bulk_mark.submit.on('click', function(e) {
+      //   log ('bulk_mark.submit');
+      //   log(bulk_mark.channel_name.val());
+      //   log(bulk_mark.until_y_video_id.val());
+      //   var channel_name = bulk_mark.channel_name.val();
+      //   var until_y_video_id = bulk_mark.until_y_video_id.val();
+      //   bulk_mark.result.text('processing...');
+      //   bulk_mark.div.find(":input").attr("disabled", true);
+      //   $.ajax({
+      //     method: "POST",
+      //     url: "/api/bulk_mark_watched/",
+      //     headers: {'X-CSRFToken': '{{ csrf_token }}'},
+      //     data: { 'channel_name' : channel_name,
+      //             'until_y_video_id': until_y_video_id,
+      //     },
+      //     success: function(result){
+      //       bulk_mark.div.find(":input").attr("disabled", false);
+      //       if(result.success) {
+      //         bulk_mark.result.text('success: marked ' + result.data.marked + ' videos');
+      //       } else if(result.error) {
+      //         bulk_mark.result.text('error: ' + result.error);
+      //       }
+      //     },
+      //     error: function(xhr,status,error){
+      //       log('bulk_mark','error', xhr,status,error);
+      //       bulk_mark.div.find(":input").attr("disabled", false);
+      //       bulk_mark.result.text('error');
+      //     }
+      //   });
+      // });
 
       var add_channel = {
         'div' : $("#add_channel"),
@@ -118,38 +120,38 @@
         });
       });
 
-      var update_channel_library = {
-        'div' : $("#update_channel_library"),
-        'channel_name' : $("#update_channel_library_channel"),
-        'submit' : $("#update_channel_library_submit"),
-        'result' : $("#update_channel_library_result"),
-      }
-      update_channel_library.submit.on('click', function(e) {
-        log ('update_channel_library.submit');
-        log(update_channel_library.channel_name.val());
-        var channel_name = update_channel_library.channel_name.val();
-        update_channel_library.result.text('processing...');
-        update_channel_library.div.find(":input").attr("disabled", true);
-        $.ajax({
-          method: "POST",
-          url: "/api/update_channel_library/",
-          headers: {'X-CSRFToken': '{{ csrf_token }}'},
-          data: { 'channel_name' : channel_name },
-          success: function(result){
-            update_channel_library.div.find(":input").attr("disabled", false);
-            if(result.success) {
-              update_channel_library.result.text('success: ' + result.data.updated + ' videos updated');
-            } else if(result.error) {
-              update_channel_library.result.text('error: ' + result.error);
-            }
-          },
-          error: function(xhr,status,error){
-            log('update_channel_library','error', xhr,status,error);
-            update_channel_library.div.find(":input").attr("disabled", false);
-            update_channel_library.result.text('error');
-          }
-        });
-      });
+      // var update_channel_library = {
+      //   'div' : $("#update_channel_library"),
+      //   'channel_name' : $("#update_channel_library_channel"),
+      //   'submit' : $("#update_channel_library_submit"),
+      //   'result' : $("#update_channel_library_result"),
+      // }
+      // update_channel_library.submit.on('click', function(e) {
+      //   log ('update_channel_library.submit');
+      //   log(update_channel_library.channel_name.val());
+      //   var channel_name = update_channel_library.channel_name.val();
+      //   update_channel_library.result.text('processing...');
+      //   update_channel_library.div.find(":input").attr("disabled", true);
+      //   $.ajax({
+      //     method: "POST",
+      //     url: "/api/update_channel_library/",
+      //     headers: {'X-CSRFToken': '{{ csrf_token }}'},
+      //     data: { 'channel_name' : channel_name },
+      //     success: function(result){
+      //       update_channel_library.div.find(":input").attr("disabled", false);
+      //       if(result.success) {
+      //         update_channel_library.result.text('success: ' + result.data.updated + ' videos updated');
+      //       } else if(result.error) {
+      //         update_channel_library.result.text('error: ' + result.error);
+      //       }
+      //     },
+      //     error: function(xhr,status,error){
+      //       log('update_channel_library','error', xhr,status,error);
+      //       update_channel_library.div.find(":input").attr("disabled", false);
+      //       update_channel_library.result.text('error');
+      //     }
+      //   });
+      // });
 
       var get_channels = {
         'div' : $("#get_channels"),
