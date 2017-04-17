@@ -73,8 +73,12 @@
 
       this._playNextVideo = function() {
         var vdata = this.m_player.getVideoData();
-        this.m_cur_index++;
-        this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
+        if (this.m_cur_index >= this.m_videos_ids.length - 1) {
+          this.m_player.stopVideo();
+        } else {
+          this.m_cur_index++;
+          this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
+        }
       }
 
       this._storeWatched = function() {
