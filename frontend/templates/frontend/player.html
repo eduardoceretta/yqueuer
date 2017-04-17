@@ -42,7 +42,7 @@
       this.m_videos_ids = videos.map(function(e) {return e.id});
 
       this._onPlayerReady = function(event) {
-        this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
+        this.m_player.cuePlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
       }
 
       this._onPlayerStateChange = function(event) {
