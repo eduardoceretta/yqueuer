@@ -8,10 +8,10 @@
     <form method="get">
 {% for channel in all_channels %}
       <img class="channel_thumbnail" src={{ channel.thumbnails }}>
-  {% if channel.title in channel_list %}
-      <input type="checkbox" checked="True" name="channel" value="{{ channel.title }}">{{ channel.title }}
+  {% if channel.name in channel_list %}
+      <input type="checkbox" checked="True" name="channel" value="{{ channel.name }}">{{ channel.title }}
   {% else %}
-      <input type="checkbox" name="channel" value="{{ channel.title }}">{{ channel.title }}
+      <input type="checkbox" name="channel" value="{{ channel.name }}">{{ channel.title }}
   {% endif %}
       <br>
 {% endfor %}
