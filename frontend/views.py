@@ -231,7 +231,7 @@ def addChannel(request):
   if y_channel_id:
     channel_qs = Channel.objects.filter(y_channel_id = y_channel_id)
   elif channel_username:
-    channel_qs = Channel.objects.filter(username = channel_username)
+    channel_qs = Channel.objects.filter(username__iexact = channel_username)
 
   if len(channel_qs) > 0 :
     channel = channel_qs[0]
