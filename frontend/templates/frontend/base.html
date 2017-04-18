@@ -1,8 +1,12 @@
+{% load static %}
 <!DOCTYPE html>
-
 <html>
   <head>
     <title>{% block title %}Yqueuer{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static "main.css" %}">
+
     <script type="text/javascript">
       window.onerror = function (msg, m_url, lineNo, columnNo, error) {
         $.ajax({
@@ -30,15 +34,15 @@
   </head>
 
   <body>
-    <div>
+    <div class="menu">
       <ul>
       {% if user.is_authenticated %}
-        <li><a href="/player/">Player</a></li>
-        <li><a href="/manage/">Manage</a></li>
-        <li><a href="/logout/">Logout</a></li>
+        <li><a class="{% if request.resolver_match.url_name == "player" %}active{% endif %}"  href="/player/">Player</a></li>
+        <li><a class="{% if request.resolver_match.url_name == "manage" %}active{% endif %}" href="/manage/">Manage</a></li>
+        <li class="logout"><a class="{% if request.resolver_match.url_name == "logout" %}active{% endif %}" href="/logout/">Logout</a></li>
       {% else %}
-        <li><a href="/register/">Register Here</a></li>
-        <li><a href="/login/">Login</a></li>
+        <li><a class="{% if request.resolver_match.url_name == "register" %}active{% endif %}" href="/register/">Register Here</a></li>
+        <li><a class="{% if request.resolver_match.url_name == "login" %}active{% endif %}" href="/login/">Login</a></li>
       {% endif %}
       </ul>
     </div>
@@ -50,9 +54,4 @@
     </div>
 
   </body>
-  <style type="text/css">
-    .channel_thumbnail {
-        height: 50px;
-    }
-  </style>
 </html>
