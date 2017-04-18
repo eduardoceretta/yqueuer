@@ -31,6 +31,8 @@
         return false;
       }
     </script>
+
+    {% block head_block %}{% endblock %}
   </head>
 
   <body>
@@ -47,10 +49,12 @@
       </ul>
     </div>
 
-    <hr />
-
-    <div>
+    <div class="content">
       {% block body_block %}{% endblock %}
+    </div>
+
+    <div class="footer">
+      {% block footer_block %}{% endblock %}
     </div>
 
   </body>
