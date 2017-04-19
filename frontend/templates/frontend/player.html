@@ -3,31 +3,6 @@
 
 {% block head_block %}
   <script src="{% static "javascript/dev_jquery-3.1.1.js" %}"></script>
-{% endblock %}
-
-{% block body_block %}
-
-  <div id="channel_form_div">
-    <form method="get">
-{% for channel in all_channels %}
-      <img class="channel_thumbnail" src={{ channel.thumbnails }}>
-  {% if channel.name in channel_list %}
-      <input type="checkbox" checked="True" name="channel" value="{{ channel.name }}">{{ channel.title }}
-  {% else %}
-      <input type="checkbox" name="channel" value="{{ channel.name }}">{{ channel.title }}
-  {% endif %}
-      <br>
-{% endfor %}
-      <input type="submit" value="Submit">
-    </form>
-  </div>
-
-  <div id="player"></div>
-
-  <button onclick="Skip()">Skip</button>
-  <button onclick="End()">End</button>
-  <div id="list"></div>
-
   <script type="text/javascript">
 
     function log() {
@@ -202,4 +177,67 @@
     FetchVideos(function(){InitPlayer();InitList();});
 
   </script>
+{% endblock %}
+
+
+
+{# #####################################BODY########################### #}
+{% block body_block %}
+
+<!-- Content Top -->
+<div class="content-top">
+  <div class="row">
+    <div class="channel-selector">
+      <form method="get">
+        <div class="col-12">
+          <ul>
+{% for channel in all_channels %}
+            <li>
+              <label><img class="channel_thumbnail" src={{ channel.thumbnails }}>
+  {% if channel.name in channel_list %}
+              <input type="checkbox" checked="True" name="channel" value="{{ channel.name }}">{{ channel.title }}
+  {% else %}
+              <input type="checkbox" name="channel" value="{{ channel.name }}">{{ channel.title }}
+  {% endif %}
+              </label>
+            </li>
+{% endfor %}
+          </ul>
+        </div>
+        <div class="col-2">
+          <input class="btn" type="submit" value="Submit">
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Content Center -->
+<div class="content-center">
+  <div class="row">
+    <div class="col-12 player">
+      <div id="player"></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-4">
+      <span style="visibility: hidden;">hack</span>
+    </div>
+    <div class="col-4 action-group">
+      <button class="btn btn-skip" onclick="Skip()">Skip</button>
+      <button class="btn btn-end" onclick="End()">End</button>
+    </div>
+  </div>
+</div>
+
+<!-- Content Bottom -->
+<div class="content-bottom">
+  <div class="row">
+    <div class="col-12">
+      <div id="list"></div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

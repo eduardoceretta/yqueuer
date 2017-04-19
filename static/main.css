@@ -7,6 +7,38 @@ body {
   height: 50px;
 }
 
+* {
+  box-sizing: border-box;
+}
+.row {
+  /*border: 1px solid blue;*/
+}
+
+.row::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+[class*="col-"] {
+    float: left;
+    /*padding: 15px;*/
+    /*border: 1px solid red;*/
+}
+.col-1 {width: 8.33%;}
+.col-2 {width: 16.66%;}
+.col-3 {width: 25%;}
+.col-4 {width: 33.33%;}
+.col-5 {width: 41.66%;}
+.col-6 {width: 50%;}
+.col-7 {width: 58.33%;}
+.col-8 {width: 66.66%;}
+.col-9 {width: 75%;}
+.col-10 {width: 83.33%;}
+.col-11 {width: 91.66%;}
+.col-12 {width: 100%;}
+
+
 .menu ul {
   list-style-type: none;
   margin: 0;
@@ -32,10 +64,104 @@ body {
 }
 
 .menu .active {
-  background-color: #4CAF50;
+  background-color: #00CED1;
 }
 
 .menu .logout {
   float: right;
   background-color: #6F6565;
+}
+
+
+.content {
+  margin:0;
+}
+
+.content-top {
+  padding:3px;
+}
+
+.channel-selector {
+}
+
+.channel-selector ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  text-align: center;
+  /*width: 80%;*/
+  float:left;
+}
+
+.channel-selector li {
+  margin: 3px;
+  padding: 0;
+  display: inline-block;
+  text-align: center;
+  max-width: 10%;
+}
+
+.channel-selector li img {
+  display: block;
+  text-align: center;
+  margin: auto;
+}
+
+.channel-selector input[type=submit] {
+  display: block;
+  margin:auto;
+  margin-top:5px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #fff;
+  background-color: #555555;
+  border-color: #454444;
+}
+
+.btn:hover{
+  background-color: #646262;
+  box-shadow:0 8px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19)
+}
+
+.btn-skip {
+  font-size: 20px;
+  padding-left: 40px;
+  padding-right: 40px;
+  margin: 5px;
+  background-color: #e7e7e7;
+  border-color: #D8D6D6;
+  color: black;
+  float:left;
+}
+
+.btn-end {
+  font-size: 20px;
+  padding-left: 40px;
+  padding-right: 40px;
+  margin: 5px;
+  background-color: #f44336;
+  border-color: #E64135;
+  float:right;
+}
+
+.action-group {
+  text-align: center;
+}
+
+.player {
+  text-align: center;
 }
