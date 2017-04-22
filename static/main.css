@@ -90,8 +90,7 @@ body {
   padding: 0;
   overflow: hidden;
   text-align: center;
-  /*width: 80%;*/
-  float:left;
+  /*float:left;*/
 }
 
 .channel-selector li {
@@ -99,7 +98,7 @@ body {
   padding: 0;
   display: inline-block;
   text-align: center;
-  max-width: 10%;
+  /*max-width: 10%;*/
 }
 
 .channel-selector li img {
