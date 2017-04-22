@@ -9,10 +9,8 @@
       console.log('_Y_',arguments);
     }
 
-    function YQ_Player (div_id, w, h, videos, opts) {
+    function YQ_Player (div_id,videos, opts) {
       this.m_div_id = div_id;
-      this.m_w = w;
-      this.m_h = h;
       this.m_cur_index = 0;
       this.m_store_watched_cb = opts.store_watched;
 
@@ -65,15 +63,13 @@
       }
 
       this.m_player = new YT.Player(this.m_div_id, {
-          height: this.m_h,
-          width: this.m_w,
           events: {
             'onReady': this._onPlayerReady.bind(this),
             'onStateChange': this._onPlayerStateChange.bind(this)
           }
       });
 
-      log ('new', div_id, w, h, opts, this);
+      log ('new', div_id, opts, this);
     }
 
     YQ_Player.prototype.skipVideo = function() {
@@ -123,8 +119,7 @@
     function onYouTubeIframeAPIReady() {
       log("YT API READY");
       player = new YQ_Player(
-          'player',
-          1280, 720,
+          'player-iframe',
           videos,
           {'store_watched': storeWatchedCb}
       );
@@ -215,17 +210,26 @@
 <!-- Content Center -->
 <div class="content-center">
   <div class="row">
-    <div class="col-12 player">
-      <div id="player"></div>
+    <div class="col-12">
+      <div class="player">
+        <div>
+          <iframe id="player-iframe"
+            src="https://www.youtube.com/embed/?enablejsapi=1"
+            frameborder="0"
+          ></iframe>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="row">
-    <div class="col-4">
+    <div class="col-3">
       <span style="visibility: hidden;">hack</span>
     </div>
-    <div class="col-4 action-group">
+    <div class="col-3 action-group">
       <button class="btn btn-skip" onclick="Skip()">Skip</button>
+    </div>
+    <div class="col-3 action-group">
       <button class="btn btn-end" onclick="End()">End</button>
     </div>
   </div>
