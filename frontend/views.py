@@ -3,6 +3,9 @@ import random
 import json
 import pytz
 import datetime
+import os
+
+from urlparse import urlparse, parse_qs
 
 from django.conf import settings
 from django.http import Http404
@@ -17,7 +20,33 @@ from django.db.models import Q
 from frontend.forms import UserForm
 from frontend.models import Channel, Video, RUserVideo, RUserChannel
 
-from frontend.yqueuer_api import searchChannelByUsername, searchChannelById, getVideosFromPlaylist
+from frontend.yqueuer_api import searchChannelByUsername, searchChannelById, getVideosFromPlaylist, getVideoInfo
+
+def _parseYoutubeUrl(url):
+  data = {}
+  if not (url.startswith('http') or url.startswith('//')) :
+    url = 'https://' + url
+
+  urlp = urlparse(url)
+  if urlp.netloc == 'www.youtube.com' or urlp.netloc == 'youtube.com':
+    data['urlparse'] = urlp
+
+    if urlp.path == '/watch':
+      urlqs = parse_qs(urlp.query)
+      video_id = urlqs['v'][0]
+      video_info = getVideoInfo(settings.SECRETS['YOUTUBE_API_KEY'], video_id)
+      if video_info and video_info['channel_id']:
+        data['y_video_id'] = video_id
+        data['y_channel_id'] = video_info['channel_id']
+    else :
+      split_path = os.path.split(urlp.path)
+      if split_path[0] == '/user':
+        data['channel_username'] = split_path[1]
+      elif split_path[0] == '/channel':
+        data['y_channel_id'] = split_path[1]
+
+  return data
+
 
 def _markWatched(user, video):
   uservideo, created = user.ruservideo_set.get_or_create(video = video)
@@ -220,11 +249,19 @@ def addChannel(request):
   channel = None
 
   user = request.user
+  url               = request.POST.get('youtube_url', None)
   y_channel_id      = request.POST.get('y_channel_id', None)
   channel_username  = request.POST.get('channel_username', None)
   last_vid_y_vid_id = request.POST.get('last_y_video_id', None)
+
+  if url:
+    parsed = _parseYoutubeUrl(url)
+    y_channel_id      = parsed.get('y_channel_id', None)
+    channel_username  = parsed.get('channel_username', None)
+    last_vid_y_vid_id = parsed.get('y_video_id', None)
+
   if not y_channel_id and not channel_username:
-    response_data = {'error' : "need channel username or id"}
+    response_data = {'error' : "Invalid parameters"}
     return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
   channel_qs = None
@@ -259,7 +296,7 @@ def addChannel(request):
     if not created:
       response_data = {'error' : "Channel already added"}
     else:
-      response_data = {'success': True}
+      response_data = {'success': True, 'data' : {'channel_title': channel.title, 'last_vid_id': last_vid_y_vid_id }}
       if last_vid_y_vid_id:
         uc.last_vid_y_vid_id = last_vid_y_vid_id
         uc.save()

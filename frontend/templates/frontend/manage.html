@@ -7,9 +7,7 @@
   <div id="add_channel">
     <span>
       Add Channel:
-      <input id="add_channel_channel_id" type="text" name="y_channel_id" placeholder="Channel Id"> OR
-      <input id="add_channel_channel_username" type="text" name="channel_username" placeholder="Channel UserName">
-      <input id="add_channel_last_y_video_id" type="text" name="last_y_video_id" placeholder="Starting After Video ID">
+      <input id="add_channel_youtube_url" type="text" size="50" name="youtube_url" placeholder="Youtube URL">
       <button id="add_channel_submit"> Submit </button>
       <span id="add_channel_result"></span>
     </span>
@@ -44,20 +42,14 @@
       log( "manage ready!" );
       var add_channel = {
         'div' : $("#add_channel"),
-        'y_channel_id' : $("#add_channel_channel_id"),
-        'channel_username' : $("#add_channel_channel_username"),
-        'last_y_video_id' : $("#add_channel_last_y_video_id"),
+        'youtube_url' : $("#add_channel_youtube_url"),
         'submit' : $("#add_channel_submit"),
         'result' : $("#add_channel_result"),
       }
       add_channel.submit.on('click', function(e) {
         log ('add_channel.submit');
-        log(add_channel.y_channel_id.val());
-        log(add_channel.channel_username.val());
-        log(add_channel.last_y_video_id.val());
-        var y_channel_id = add_channel.y_channel_id.val();
-        var channel_username = add_channel.channel_username.val();
-        var last_y_video_id = add_channel.last_y_video_id.val();
+        log(add_channel.youtube_url.val());
+        var youtube_url = add_channel.youtube_url.val();
         add_channel.result.text('processing...');
         add_channel.div.find(":input").attr("disabled", true);
         $.ajax({
@@ -65,14 +57,12 @@
           url: "/api/add_channel/",
           headers: {'X-CSRFToken': '{{ csrf_token }}'},
           data: {
-            'y_channel_id' : y_channel_id,
-            'channel_username' : channel_username,
-            'last_y_video_id': last_y_video_id,
+            'youtube_url' : youtube_url,
           },
           success: function(result){
             add_channel.div.find(":input").attr("disabled", false);
             if(result.success) {
-              add_channel.result.text('success');
+              add_channel.result.text('success! added channel ' + result.data.channel_title + (result.data.last_vid_id ? ' with last video ' + result.data.last_vid_id : ''));
             } else if(result.error) {
               add_channel.result.text('error: ' + result.error);
             }
