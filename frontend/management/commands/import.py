@@ -77,7 +77,7 @@ class Command(BaseCommand):
         self._print("Processing Channel %s[nv%d/%d] last(%s)" % (u_c.channel.title, u_c.num_vid, IMPORT_LOWER_BOUNDARY, u_c.last_vid_y_vid_id), 3)
         if u_c.num_vid <= IMPORT_LOWER_BOUNDARY:
           self._print("Need to import %d new videos" % (IMPORT_UPPER_BOUNDARY - u_c.num_vid), 4)
-          videos = self._fetchNewVideos(u_c.channel, u_c.last_vid_y_vid_id, IMPORT_UPPER_BOUNDARY - u_c.num_vid)
+          videos = self._fetchNewVideos(u, u_c.channel, u_c.last_vid_y_vid_id, u_c.last_vid_pub_date, IMPORT_UPPER_BOUNDARY - u_c.num_vid)
           self._print("Got %d Videos" % (len(videos)), 4)
           if len(videos) > 0:
             last_vid = videos[-1]
@@ -102,7 +102,7 @@ class Command(BaseCommand):
     return video_qs
 
 
-  def _fetchNewVideos(self, c, last_vid_y_vid_id, n):
+  def _fetchNewVideos(self, u, c, last_vid_y_vid_id, last_vid_pub_date,  n):
     videos = getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], c.playlist_uploads_id, last_vid_y_vid_id)
     db_videos = []
     videos.sort(key=lambda x: x["published_at"])
@@ -117,11 +117,16 @@ class Command(BaseCommand):
         )
         db_videos.append(db_vid)
       else :
-        db_vid = video_qs[0]
-        db_vid.ref_count+=1
-        db_vid.save()
-        db_videos.append(db_vid)
-        self._print("Incrementing video: %s[rc:%d] (%s) %s" % (db_vid.title, db_vid.ref_count, db_vid.y_video_id, db_vid.published_at), 4)
+        # Videos should be unique per user
+        uservideo_qs = u.ruservideo_set.filter(video = video_qs[0])
+        if len(uservideo_qs) == 0 :
+          db_vid = video_qs[0]
+          db_vid.ref_count+=1
+          db_vid.save()
+          db_videos.append(db_vid)
+          self._print("Incrementing video: %s[rc:%d] (%s) %s" % (db_vid.title, db_vid.ref_count, db_vid.y_video_id, db_vid.published_at), 4)
+        else :
+          warn("Trying to insert an already existing video(%s) to user %s" % (video_qs[0].y_video_id, u.username))
 
     return db_videos
 
@@ -143,3 +148,5 @@ class Command(BaseCommand):
     self._print("UserVideo: %d" % num_unique_uservideo, 2)
     self._print("Total: %d" % total, 2)
 
+def warn(msg):
+  pass
