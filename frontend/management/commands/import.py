@@ -121,7 +121,7 @@ class Command(BaseCommand):
   def _fetchNewVideos(self, u, c, last_vid_y_vid_id, last_vid_pub_date,  n):
     videos = getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], c.playlist_uploads_id, last_vid_y_vid_id)
     db_videos = []
-    videos.sort(key=lambda x: x["published_at"])
+
     for v in videos[0:n]:
       video_qs = Video.objects.filter(y_video_id = v["id"])
       if len(video_qs) == 0 :

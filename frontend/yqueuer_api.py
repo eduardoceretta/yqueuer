@@ -61,13 +61,15 @@ def getVideosFromPlaylist(dev_key, playlist_id, last_video_id):
   DEVELOPER_KEY = dev_key
   YOUTUBE_API_SERVICE_NAME = "youtube"
   YOUTUBE_API_VERSION = "v3"
+  SEARCH_EXTRA_PAGES = 3
   youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
     developerKey=DEVELOPER_KEY)
 
   videos = []
   i = 0
+  max_pages = 300
   nextPageToken = None
-  while nextPageToken or i == 0:
+  while max_pages > 0 and (nextPageToken or i == 0):
     search_response = youtube.playlistItems().list(
       part = 'contentDetails,snippet',
       playlistId = playlist_id,
@@ -78,9 +80,11 @@ def getVideosFromPlaylist(dev_key, playlist_id, last_video_id):
     for search_result in search_response.get("items", []):
       vid_id = search_result["contentDetails"]["videoId"]
 
-      # Stop importing if reached last_video_id
+      # Import a couple of extra pages if last_video_id was found
+      #   Pages are not properly sorted but by going a couple of pages further should
+      #   give a good balance between overhead and correctness
       if last_video_id and last_video_id == vid_id:
-        return videos
+        max_pages = SEARCH_EXTRA_PAGES+1
 
       video_obj = {
         'id' : vid_id,
@@ -94,8 +98,18 @@ def getVideosFromPlaylist(dev_key, playlist_id, last_video_id):
 
     nextPageToken = search_response.get("nextPageToken", None)
     i+=1
+    max_pages-=1
 
-  return videos
+  videos.sort(key=lambda x: x["published_at"])
+  final_vid = []
+  seen_last_vid_id = False
+  for v in videos:
+    if(v["id"]==last_video_id):
+      seen_last_vid_id = True
+    elif (seen_last_vid_id):
+      final_vid.append(v)
+
+  return final_vid
 
 
 
