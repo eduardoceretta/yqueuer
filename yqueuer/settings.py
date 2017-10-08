@@ -47,6 +47,9 @@ SECRETS_EXPECTED_CONFIG = {
     'DB_PASS': '',
     'ALLOWED_HOSTS': '',
     'YOUTUBE_API_KEY': '',
+    'MAILGUN_API_KEY' : '',
+    'MAILGUN_DOMAIN' : '',
+    'PROJECT_EMAIL' : '',
 }
 
 SECRETS = readSecrets()

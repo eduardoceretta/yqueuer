@@ -1,6 +1,9 @@
 import os
 import sys
 import pprint
+import requests
+import traceback
+from cStringIO import StringIO
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -21,18 +24,21 @@ class Command(BaseCommand):
 
   def __init__(self, *args, **kwargs):
     super(self.__class__, self).__init__(*args, **kwargs)
-    self.pp = pprint.PrettyPrinter(stream = self.stdout)
-
+    self.stdout_mail = StringIO()
 
   def handle(self, *args, **options):
-    self._dbStats()
-    self._print("\n")
-    self._print("Starting Populate Library")
-
-    self._trim()
-    self._import()
-    self._print("Done Populate Library")
-    self._dbStats()
+    try:
+      self._dbStats()
+      self._print("\n")
+      self._print("Starting Populate Library")
+      self._trim()
+      self._import()
+      self._print("Done Populate Library")
+      self._dbStats()
+    except: # catch *all* exceptions
+      traceback.print_exc(30,self.stdout_mail)
+      traceback.print_exc(30,self.stdout)
+    self._send_mail_logs()
 
   def _trim(self):
     self._print("\n")
@@ -91,11 +97,21 @@ class Command(BaseCommand):
               uservideo = u.ruservideo_set.create(video = v)
             self._print("Appended %d videos to RuserVideo" % len(videos),4)
 
+  def _send_mail_logs(self):
+    logs = self.stdout_mail.getvalue()
 
-
-  def _print(self, obj, indent_level = 0):
-    self.stdout.write(" "*indent_level + obj)
-
+    api_key = settings.SECRETS['MAILGUN_API_KEY']
+    domain = settings.SECRETS['MAILGUN_DOMAIN']
+    log_mail = settings.SECRETS['PROJECT_EMAIL']
+    response = requests.post(
+      "https://api.mailgun.net/v3/" + domain + "/messages",
+      auth=("api", api_key),
+      data={"from": "Importer<importer@yqueuer>",
+            "to": [log_mail],
+            "subject": "[Importer] Importer Logs",
+            "text": logs}
+    )
+    self._print("Sending log email, response %s." % (response), 0)
 
   def _getWatchedVideos(self, user):
     video_qs = Video.objects.select_related('channel').filter(users = user, ruservideo__watched = True)
@@ -126,10 +142,9 @@ class Command(BaseCommand):
           db_videos.append(db_vid)
           self._print("Incrementing video: %s[rc:%d] (%s) %s" % (db_vid.title, db_vid.ref_count, db_vid.y_video_id, db_vid.published_at), 4)
         else :
-          warn("Trying to insert an already existing video(%s) to user %s" % (video_qs[0].y_video_id, u.username))
+          self.warn("Trying to insert an already existing video(%s) to user %s" % (video_qs[0].y_video_id, u.username))
 
     return db_videos
-
 
   def _dbStats(self):
     self._print("\n")
@@ -148,5 +163,10 @@ class Command(BaseCommand):
     self._print("UserVideo: %d" % num_unique_uservideo, 2)
     self._print("Total: %d" % total, 2)
 
-def warn(msg):
-  pass
+  def warn(self, msg):
+    self._print("[WARN]" + msg, 0)
+
+  def _print(self, obj, indent_level = 0):
+    u_obj = (u' '+obj).encode('ascii', 'ignore').decode('ascii')
+    self.stdout_mail.write(" "*indent_level + u_obj + "\n")
+    self.stdout.write(" "*indent_level + u_obj)
