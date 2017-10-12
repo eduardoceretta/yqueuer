@@ -24,7 +24,7 @@
       this._onPlayerStateChange = function(event) {
         var playerStatus = event.data;
         var state;
-        var vdata = this.m_player.getVideoData();
+        // var vdata = this.m_player.getVideoData();
 
         if (playerStatus == -1) {
           // state = 'unstarted'
@@ -48,7 +48,6 @@
       }
 
       this._playNextVideo = function() {
-        var vdata = this.m_player.getVideoData();
         if (this.m_cur_index >= this.m_videos_ids.length - 1) {
           this.m_player.stopVideo();
         } else {
