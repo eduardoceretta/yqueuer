@@ -57,8 +57,8 @@
       }
 
       this._storeWatched = function() {
-        var vdata = this.m_player.getVideoData();
-        this.m_store_watched_cb(vdata.video_id);
+        var playlist_index = this.m_player.getPlaylistIndex();
+        this.m_store_watched_cb(this.m_videos_ids[playlist_index]);
       }
 
       this.m_player = new YT.Player(this.m_div_id, {
