@@ -104,9 +104,12 @@ def getVideosFromPlaylist(dev_key, playlist_id, last_video_id):
   final_vid = []
   seen_last_vid_id = False
   for v in videos:
-    if(v["id"]==last_video_id):
-      seen_last_vid_id = True
-    elif (seen_last_vid_id):
+    if(last_video_id):
+      if(v["id"]==last_video_id):
+        seen_last_vid_id = True
+      elif (seen_last_vid_id):
+        final_vid.append(v)
+    else:
       final_vid.append(v)
 
   return final_vid
