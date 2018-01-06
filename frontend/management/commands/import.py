@@ -8,7 +8,7 @@ from cStringIO import StringIO
 from django.core.management.base import BaseCommand, CommandError
 
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 from django.contrib.auth.models import User
 
@@ -34,6 +34,10 @@ class Command(BaseCommand):
       self._trim()
       self._import()
       self._print("Done Populate Library")
+      self._print("\n")
+      self._print("Starting Running Tests")
+      self._runTests()
+      self._print("Done Running Tests")
       self._dbStats()
     except: # catch *all* exceptions
       traceback.print_exc(30,self.stdout_mail)
@@ -146,6 +150,21 @@ class Command(BaseCommand):
 
     return db_videos
 
+  def _runTests(self):
+    self._print("Check if RUserChannel.num_vid is != than the actual relational", 1)
+    channels = RUserChannel.objects.all()
+    for x in channels:
+      c_vids = RUserVideo.objects.filter(video__channel = x.channel, user = x.user).count()
+      if x.num_vid - c_vids != 0 :
+        warn("User %s - Channel %s has %d num_vids but RUserVideo.count has %d" % (x.user.username, x.channel.title, x.num_vid, c_vids))
+
+    self._print("Check if any video has no relation in uservideo",1)
+    all_vids = Video.objects.annotate(num_users=Count('users'))
+    for v in all_vids:
+      if (v.ref_count - v.num_users != 0):
+        warn("Channel %s Video %s(%s) has ref_count %d but RUserVideo.count has %d" % (v.channel.name,v.title, v.y_video_id,v.ref_count, v.num_users))
+
+
   def _dbStats(self):
     self._print("\n")
     self._print("DB Stats", 1)
@@ -161,7 +180,7 @@ class Command(BaseCommand):
     self._print("Channel: %d" % num_unique_channel, 2)
     self._print("UserChannel: %d" % num_unique_userchannel, 2)
     self._print("UserVideo: %d" % num_unique_uservideo, 2)
-    self._print("Total: %d" % total, 2)
+    self._print("Total: %d/~10000" % total, 2)
 
   def warn(self, msg):
     self._print("[WARN]" + msg, 0)
