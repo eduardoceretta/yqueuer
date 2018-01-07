@@ -24,7 +24,10 @@
       this._onPlayerStateChange = function(event) {
         var playerStatus = event.data;
         var state;
-        // var vdata = this.m_player.getVideoData();
+
+        // Update Video's Title
+        var vdata = this.m_player.getVideoData();
+        title.innerHTML = vdata.author + " - " + vdata.title;
 
         if (playerStatus == -1) {
           // state = 'unstarted'
@@ -80,6 +83,7 @@
       this._playNextVideo();
     }
 
+    var title;
     var player;
     var videos = [];
 
@@ -122,6 +126,7 @@
           videos,
           {'store_watched': storeWatchedCb}
       );
+      title = document.getElementById('video-title');
     }
 
     function Skip() {
@@ -208,6 +213,13 @@
 
 <!-- Content Center -->
 <div class="content-center">
+  <div class="row">
+    <div class="col-12">
+      <div class="video-title-container">
+        <h2 id="video-title"></h2>
+      </div>
+    </div>
+  </div>
   <div class="row">
     <div class="col-12">
       <div class="player">
