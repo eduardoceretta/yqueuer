@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Channel(models.Model):
   y_channel_id        = models.CharField(max_length = 200, unique = True)
@@ -53,3 +55,17 @@ class RUserVideo(models.Model):
   def __str__(self):
     return "User: %s | Video: %s | Watched: %s" % (self.user.username, self.video.title, self.watched)
 
+
+class UserPreferences(models.Model):
+  user                = models.OneToOneField(User, on_delete=models.CASCADE)
+  video_playback_rate = models.DecimalField(max_digits = 3, decimal_places = 2, default = 1, blank = True, null = True)
+
+# Signals
+@receiver(post_save, sender=User)
+def create_user_preferences(sender, instance, created, **kwargs):
+  if created:
+    UserPreferences.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_preferences(sender, instance, **kwargs):
+  instance.userpreferences.save()

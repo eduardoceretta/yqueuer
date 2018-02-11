@@ -12,6 +12,8 @@ urlpatterns = [
     url(r'^api/mark_watched/$', views.markWatched, name = 'mark_watched'),
     # url(r'^api/update_channel_library/$', views.updateChannelLibrary, name = 'update_channel_library'),
     url(r'^api/add_channel/$', views.addChannel, name = 'add_channel'),
+    url(r'^api/set_video_playback_rate/$', views.setUserVideoPlaybackRate, name = 'set_video_playback_rate'),
+    url(r'^api/get_preferences/$', views.getUserPreferences, name = 'get_preferences'),
     url(r'^api/post_jserror/$', views.postJSError, name = 'post_jserror'),
     # Authentication
     url(r'^register/$', views.register, name = 'register'),

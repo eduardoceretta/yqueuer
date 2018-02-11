@@ -13,12 +13,29 @@
       this.m_div_id = div_id;
       this.m_cur_index = 0;
       this.m_store_watched_cb = opts.store_watched;
+      this.m_store_playbackrate_cb = opts.store_playbackrate;
 
       this.m_videos_dataset = videos;
       this.m_videos_ids = videos.map(function(e) {return e.id});
 
+      // User Preferences
+      this.m_current_video_playback_rate = {{ preferences.video_playback_rate }};
+
       this._onPlayerReady = function(event) {
         this.m_player.cuePlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
+        // Set Player video playback rate preference
+        this.m_player.setPlaybackRate(this.m_current_video_playback_rate);
+      }
+
+      this._onPlaybackRateChange = function(event) {
+        var new_playback_rate = event['data']
+        if( this.m_store_playbackrate_cb
+          && new_playback_rate != this.m_current_video_playback_rate
+        ) {
+          this.m_current_video_playback_rate = new_playback_rate;
+          var video_playback_rate = this.m_player.getPlaybackRate();
+          this.m_store_playbackrate_cb(video_playback_rate);
+        }
       }
 
       this._onPlayerStateChange = function(event) {
@@ -67,7 +84,8 @@
       this.m_player = new YT.Player(this.m_div_id, {
           events: {
             'onReady': this._onPlayerReady.bind(this),
-            'onStateChange': this._onPlayerStateChange.bind(this)
+            'onStateChange': this._onPlayerStateChange.bind(this),
+            'onPlaybackRateChange': this._onPlaybackRateChange.bind(this)
           }
       });
 
@@ -124,7 +142,10 @@
       player = new YQ_Player(
           'player-iframe',
           videos,
-          {'store_watched': storeWatchedCb}
+          {
+            'store_watched': storeWatchedCb,
+            'store_playbackrate': storePlaybackRateCb,
+          }
       );
       title = document.getElementById('video-title');
     }
@@ -151,6 +172,22 @@
           log('storeWatchedCb','error', xhr,status,error);
         }
       });
+    }
+    function storePlaybackRateCb(video_playback_rate) {
+      log('storePlaybackRateCb', video_playback_rate);
+      $.ajax({
+        method: "POST",
+        url: "/api/set_video_playback_rate/",
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        data: { 'video_playback_rate' : video_playback_rate },
+        success: function(result){
+          log('storePlaybackRateCb','success', result);
+        },
+        error: function(xhr,status,error){
+          log('storePlaybackRateCb','error', xhr,status,error);
+        }
+      });
+      $('#playback_rate_label')[0].innerHTML = 'Speed: ' + video_playback_rate;
     }
 
     function InitList() {
@@ -245,6 +282,13 @@
       <button class="btn btn-end" onclick="End()">End</button>
     </div>
   </div>
+
+  <div class="row">
+    <div class="col-12 playback_rate">
+      <label id='playback_rate_label'> Speed: {{ preferences.video_playback_rate }}</label>
+    </div>
+  </div>
+
 </div>
 
 <!-- Content Bottom -->

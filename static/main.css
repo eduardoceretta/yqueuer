@@ -181,3 +181,7 @@ body {
 .video-title-container {
   text-align: center;
 }
+
+.playback_rate {
+  text-align: center;
+}

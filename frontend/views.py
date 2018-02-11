@@ -18,7 +18,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 
 from frontend.forms import UserForm
-from frontend.models import Channel, Video, RUserVideo, RUserChannel
+from frontend.models import Channel, Video, RUserVideo, RUserChannel, UserPreferences
 
 from frontend.yqueuer_api import searchChannelByUsername, searchChannelById, getVideosFromPlaylist, getVideoInfo
 
@@ -69,6 +69,13 @@ def _getChannels(user):
     })
 
   return channels
+
+def _getUserPreferences(user):
+  preferences = UserPreferences.objects.get(user = user)
+
+  return {
+    'video_playback_rate': float(preferences.video_playback_rate),
+  }
 
 ##############################################
 # Pages
@@ -145,7 +152,9 @@ def player(request):
 
   all_channels = _getChannels(request.user)
 
-  context = { 'channel_list' : channel_list, 'all_channels' : all_channels }
+  preferences = _getUserPreferences(request.user)
+
+  context = { 'channel_list' : channel_list, 'all_channels' : all_channels, 'preferences': preferences}
   return render(request, 'frontend/player.html', context)
 
 ##################################
@@ -302,6 +311,39 @@ def addChannel(request):
         uc.save()
 
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+@login_required
+def getUserPreferences(request):
+  user = request.user
+
+  preferences_data = _getUserPreferences(user)
+
+  if not preferences_data :
+    response_data = {'error' : "Non Existing User Preferences"}
+    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+  response_data = {'success': True, 'data' : preferences_data}
+  return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+
+@login_required
+def setUserVideoPlaybackRate(request):
+  user = request.user
+
+  video_playback_rate = request.POST['video_playback_rate']
+  if not video_playback_rate:
+    response_data = {'error' : "Invalid arguments"}
+    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+  user.userpreferences.video_playback_rate = video_playback_rate
+  user.save()
+
+  data = {
+    'video_playback_rate' : user.userpreferences.video_playback_rate
+  }
+  response_data = {'success': True, 'data' : data}
+  return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
 
 def postJSError(request):
   print >>sys.stderr, 'JSERROR: ', request.POST['msg'], request.POST['url'], request.POST['lineNo'],request.POST['columnNo'],request.POST['error']
