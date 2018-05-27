@@ -312,6 +312,46 @@ def addChannel(request):
 
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
+
+##################################
+@login_required
+def removeChannel(request):
+  response_data = {'error' : "can't find channel"}
+
+  user = request.user
+
+  y_channel_id  = request.POST.get('y_channel_id', None)
+  if not y_channel_id:
+    response_data = {'error' : "Invalid parameters"}
+    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+  channel_qs = Channel.objects.filter(y_channel_id = y_channel_id)
+  if len(channel_qs) <= 0 :
+    return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+  channel = channel_qs[0]
+  userchannel = user.ruserchannel_set.get(channel = channel)
+
+  video_qs = Video.objects.filter(channel = channel, users = user)
+  for v in video_qs:
+    uservideo = user.ruservideo_set.get(video = v)
+    uservideo.delete()
+
+    v.ref_count-=1
+    if v.ref_count <= 0:
+      v.delete()
+    else:
+      v.save()
+
+  userchannel.delete()
+  response_data = {'success': True, 'data' : {'channel_title': channel.title}}
+
+  if channel.users.count() <= 0:
+    channel.delete()
+
+  return HttpResponse(json.dumps(response_data), content_type = "application/json")
+
+
 @login_required
 def getUserPreferences(request):
   user = request.user
