@@ -156,13 +156,13 @@ class Command(BaseCommand):
     for x in channels:
       c_vids = RUserVideo.objects.filter(video__channel = x.channel, user = x.user).count()
       if x.num_vid - c_vids != 0 :
-        warn("User %s - Channel %s has %d num_vids but RUserVideo.count has %d" % (x.user.username, x.channel.title, x.num_vid, c_vids))
+        self.warn("User %s - Channel %s has %d num_vids but RUserVideo.count has %d" % (x.user.username, x.channel.title, x.num_vid, c_vids))
 
     self._print("Check if any video has no relation in uservideo",1)
     all_vids = Video.objects.annotate(num_users=Count('users'))
     for v in all_vids:
       if (v.ref_count - v.num_users != 0):
-        warn("Channel %s Video %s(%s) has ref_count %d but RUserVideo.count has %d" % (v.channel.name,v.title, v.y_video_id,v.ref_count, v.num_users))
+        self.warn("Channel %s Video %s(%s) has ref_count %d but RUserVideo.count has %d" % (v.channel.name,v.title, v.y_video_id,v.ref_count, v.num_users))
 
 
   def _dbStats(self):
