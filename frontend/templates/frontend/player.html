@@ -2,14 +2,16 @@
 {% load static %}
 
 {% block head_block %}
-  <script src="{% static "javascript/dev_jquery-3.1.1.js" %}"></script>
+  <script src="{% static "javascript/lib/dev_jquery-3.1.1.js" %}"></script>
+  <script src="{% static "javascript/lib/annyang-2.6.0.min.js" %}"></script>
+  <script src="{% static "javascript/speech_recognition.js" %}"></script>
   <script type="text/javascript">
 
     function log() {
       console.log('_Y_',arguments);
     }
 
-    function YQ_Player (div_id,videos, opts) {
+    function YQ_Player (div_id, videos, opts) {
       this.m_div_id = div_id;
       this.m_cur_index = 0;
       this.m_store_watched_cb = opts.store_watched;
@@ -81,7 +83,20 @@
         this.m_store_watched_cb(this.m_videos_ids[playlist_index]);
       }
 
+      this._playVideo = function() {
+        this.m_player.playVideo();
+      }
+
+      this._pauseVideo = function() {
+        this.m_player.pauseVideo();
+      }
+
+      this._restartVideo = function() {
+        this.m_player.seekTo(0);
+      }
+
       this.m_player = new YT.Player(this.m_div_id, {
+          playerVars : {'controls' : 0},
           events: {
             'onReady': this._onPlayerReady.bind(this),
             'onStateChange': this._onPlayerStateChange.bind(this),
@@ -101,8 +116,22 @@
       this._playNextVideo();
     }
 
+    YQ_Player.prototype.playVideo = function() {
+      this._playVideo();
+    }
+
+    YQ_Player.prototype.pauseVideo = function() {
+      this._pauseVideo();
+    }
+
+    YQ_Player.prototype.restartVideo = function() {
+      this._restartVideo();
+    }
+
+
     var title;
     var player;
+    var speech_recognitier;
     var videos = [];
 
     function FetchVideos(success_cb, error_cb) {
@@ -158,8 +187,27 @@
       player.endVideo();
     }
 
+    function Play() {
+      player.playVideo();
+    }
+
+    function Pause() {
+      player.pauseVideo();
+    }
+
+    function Restart() {
+      player.restartVideo();
+    }
+
+    function ToggleSpeech() {
+      if(speech_recognitier.isListening()) {
+        speech_recognitier.stop();
+      } else {
+        speech_recognitier.start();
+      }
+    }
+
     function storeWatchedCb(vid_id) {
-      console.log('storeWatchedCb', vid_id);
       $.ajax({
         method: "POST",
         url: "/api/mark_watched/",
@@ -209,6 +257,31 @@
 
       div_list.appendChild(list);
     }
+
+    function InitSpeechRecognition() {
+      speech_recognitier = new YQ_SpeechRecognition(
+        {
+          'skip' : Skip,
+          'end' : End,
+          'play' : Play,
+          'pause' : Pause,
+          'restart' : Restart,
+        },
+        function(c) {
+          var status = speech_recognitier.isListening();
+          var elem = document.getElementById('speech_toggle');
+          if (status) {
+            elem.innerHTML = "Turn Off Speach";
+            elem.className  = 'btn btn-speech_stop';
+          } else {
+            elem.innerHTML = "Turn On Speach";
+            elem.className  = 'btn btn-speech_start';
+          }
+        }
+      );
+    }
+
+    InitSpeechRecognition();
 
     FetchVideos(function(){InitPlayer();InitList();});
 
@@ -265,6 +338,7 @@
             src="https://www.youtube.com/embed/?enablejsapi=1"
             frameborder="0"
             allowfullscreen="1"
+            controls="0"
           ></iframe>
         </div>
       </div>
@@ -280,6 +354,16 @@
     </div>
     <div class="col-3 action-group">
       <button class="btn btn-end" onclick="End()">End</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-5">
+      <span style="visibility: hidden;">hack</span>
+    </div>
+    <div class="col-2 action-group tooltip">
+      <button id='speech_toggle' class="btn btn-speech_start" onclick="ToggleSpeech()">Turn On Speach</button>
+      <span class="tooltiptext">Accepted commands: Play, Stop, Pause, Restart, Skip, End, Stop Speech</span>
     </div>
   </div>
 
