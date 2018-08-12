@@ -110,12 +110,14 @@ class Command(BaseCommand):
     response = requests.post(
       "https://api.mailgun.net/v3/" + domain + "/messages",
       auth=("api", api_key),
-      data={"from": "Importer<importer@yqueuer>",
+      data={"from": "Importer<importer@yqueuer.edu>",
             "to": [log_mail],
             "subject": "[Importer] Importer Logs",
             "text": logs}
     )
     self._print("Sending log email, response %s." % (response), 0)
+    if (response.status_code != requests.codes.ok):
+      self._print("Failed to send email: %s." % (response.json()), 0)
 
   def _getWatchedVideos(self, user):
     video_qs = Video.objects.select_related('channel').filter(users = user, ruservideo__watched = True)
