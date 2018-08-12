@@ -154,7 +154,9 @@ def player(request):
 
   preferences = _getUserPreferences(request.user)
 
-  context = { 'channel_list' : channel_list, 'all_channels' : all_channels, 'preferences': preferences}
+  debug = request.GET.has_key('debug') and 1 or 0
+
+  context = { 'channel_list' : channel_list, 'all_channels' : all_channels, 'preferences': preferences, 'debug': debug}
   return render(request, 'frontend/player.html', context)
 
 ##################################

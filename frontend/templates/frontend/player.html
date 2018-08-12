@@ -6,9 +6,12 @@
   <script src="{% static "javascript/lib/annyang-2.6.0.min.js" %}"></script>
   <script src="{% static "javascript/speech_recognition.js" %}"></script>
   <script type="text/javascript">
-
-    function log() {
-      console.log('_Y_',arguments);
+    Y = {
+      'DEBUG' : {{ debug }},
+    };
+    function INFO() {
+      if (Y.DEBUG)
+        console.log('_Y_',arguments);
     }
 
     function YQ_Player (div_id, videos, opts) {
@@ -49,24 +52,34 @@
         title.innerHTML = vdata.author + " - " + vdata.title;
 
         if (playerStatus == -1) {
-          // state = 'unstarted'
+          state = 'unstarted'
+          if(vdata.title != "") {
+            var s = this;
+            setTimeout(function(){
+              INFO('unstarted TIMEOUT');
+              INFO("unstarted TIMEOUT STATE", s.m_player.getPlayerState());
+              if (s.m_player.getPlayerState() == -1)
+                s.m_player.playVideo();
+                INFO('unstarted TIMEOUT force play');
+            }, 3000);
+          }
         } else if (playerStatus == 0) {
           state = 'ended'
           this.endVideo();
 
-          // log(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
+          // INFO(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
         } else if (playerStatus == 1) {
-          // state = 'playing'
+          state = 'playing'
         } else if (playerStatus == 2) {
-          // state = 'paused'
+          state = 'paused'
         } else if (playerStatus == 3) {
-          // state = 'buffering'
+          state = 'buffering'
         } else if (playerStatus == 5) {
-          // state = 'cued'
+          state = 'cued'
         } else {
-          // state = '_else_';
+          state = '_else_';
         }
-        // log (state, this.m_player.getPlaylistIndex(), vdata.title, vdata.author, vdata.video_id, this.m_videos_ids);
+        INFO(state, this.m_player.getPlaylistIndex(), vdata.title, vdata.author, vdata.video_id, this.m_videos_ids, vdata);
       }
 
       this._playNextVideo = function() {
@@ -104,7 +117,7 @@
           }
       });
 
-      log ('new', div_id, opts, this);
+      INFO('new', div_id, opts, this);
     }
 
     YQ_Player.prototype.skipVideo = function() {
@@ -135,7 +148,7 @@
     var videos = [];
 
     function FetchVideos(success_cb, error_cb) {
-      log('FetchVideos');
+      INFO('FetchVideos');
       $.ajax({
         method: "GET",
         url: "/api/get_videos/",
@@ -144,13 +157,13 @@
         data: { 'channel_list' : '{{ channel_list }}' },
 {% endif %}
         success:  function(result){
-          log('FetchVideos','success', result);
+          INFO('FetchVideos','success', result);
           videos = result.data.videos;
           if (success_cb)
             success_cb();
         },
         error: function(xhr,status,error){
-          log('FetchVideos','error', xhr,status,error);
+          INFO('FetchVideos','error', xhr,status,error);
           if (error_cb)
             error_cb();
         }
@@ -158,7 +171,7 @@
     }
 
     function InitPlayer() {
-      log("InitPlayer");
+      INFO("InitPlayer");
       var tag = document.createElement('script');
       tag.id = 'iframe-demo';
       tag.src = 'https://www.youtube.com/iframe_api';
@@ -167,7 +180,7 @@
     }
 
     function onYouTubeIframeAPIReady() {
-      log("YT API READY");
+      INFO("YT API READY");
       player = new YQ_Player(
           'player-iframe',
           videos,
@@ -214,32 +227,32 @@
         headers: {'X-CSRFToken': '{{ csrf_token }}'},
         data: { y_video_id : vid_id },
         success: function(result){
-          log('storeWatchedCb','success', result);
+          INFO('storeWatchedCb','success', result);
         },
         error: function(xhr,status,error){
-          log('storeWatchedCb','error', xhr,status,error);
+          INFO('storeWatchedCb','error', xhr,status,error);
         }
       });
     }
     function storePlaybackRateCb(video_playback_rate) {
-      log('storePlaybackRateCb', video_playback_rate);
+      INFO('storePlaybackRateCb', video_playback_rate);
       $.ajax({
         method: "POST",
         url: "/api/set_video_playback_rate/",
         headers: {'X-CSRFToken': '{{ csrf_token }}'},
         data: { 'video_playback_rate' : video_playback_rate },
         success: function(result){
-          log('storePlaybackRateCb','success', result);
+          INFO('storePlaybackRateCb','success', result);
         },
         error: function(xhr,status,error){
-          log('storePlaybackRateCb','error', xhr,status,error);
+          INFO('storePlaybackRateCb','error', xhr,status,error);
         }
       });
       $('#playback_rate_label')[0].innerHTML = 'Speed: ' + video_playback_rate;
     }
 
     function InitList() {
-      log("InitList");
+      INFO("InitList");
       var div_list = document.getElementById('list');
 
       var list = document.createElement('ol');
@@ -271,10 +284,10 @@
           var status = speech_recognitier.isListening();
           var elem = document.getElementById('speech_toggle');
           if (status) {
-            elem.innerHTML = "Turn Off Speach";
+            elem.innerHTML = "Turn Off Speech";
             elem.className  = 'btn btn-speech_stop';
           } else {
-            elem.innerHTML = "Turn On Speach";
+            elem.innerHTML = "Turn On Speech";
             elem.className  = 'btn btn-speech_start';
           }
         }
@@ -362,7 +375,7 @@
       <span style="visibility: hidden;">hack</span>
     </div>
     <div class="col-8 action-group">
-      <button id='speech_toggle' class="btn btn-speech_start" onclick="ToggleSpeech()">Turn On Speach</button>
+      <button id='speech_toggle' class="btn btn-speech_start" onclick="ToggleSpeech()">Turn On Speech</button>
     </div>
     <div class="col-1 tooltip">
       <label>Speech Info:</label>
