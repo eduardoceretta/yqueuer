@@ -154,11 +154,29 @@ class Command(BaseCommand):
 
   def _runTests(self):
     self._print("Check if RUserChannel.num_vid is != than the actual relational", 1)
-    channels = RUserChannel.objects.all()
-    for x in channels:
-      c_vids = RUserVideo.objects.filter(video__channel = x.channel, user = x.user).count()
-      if x.num_vid - c_vids != 0 :
-        self.warn("User %s - Channel %s has %d num_vids but RUserVideo.count has %d" % (x.user.username, x.channel.title, x.num_vid, c_vids))
+    userchannels = RUserChannel.objects.all()
+    for uc in userchannels:
+      uservids = RUserVideo.objects.filter(video__channel = uc.channel, user = uc.user).order_by('video__published_at')
+      if uc.num_vid != len(uservids):
+        pprint.pprint("User %s - Channel %s has %d num_vids but RUserVideo.count has %d" % (uc.user.username, uc.channel.title, uc.num_vid, len(uservids)))
+        # FIX
+        # uc.num_vid = len(uservids)
+        # uc.save()
+
+      if(len(uservids) > 0):
+        last_vid = uservids[len(uservids)-1].video
+
+        if uc.last_vid_pub_date != last_vid.published_at:
+          pprint.pprint("User %s - Channel %s has %s last_vid_pub_date but RUserVideo has %s" % (uc.user.username, uc.channel.title, uc.last_vid_pub_date, last_vid.published_at))
+          # FIX
+          # uc.last_vid_pub_date = last_vid.published_at
+          # uc.save()
+
+        if uc.last_vid_y_vid_id != last_vid.y_video_id:
+          pprint.pprint("User %s - Channel %s has %s last_vid_y_vid_id but RUserVideo has %s" % (uc.user.username, uc.channel.title, uc.last_vid_y_vid_id, last_vid.y_video_id))
+          # FIX
+          # uc.last_vid_y_vid_id = last_vid.y_video_id
+          # uc.save()
 
     self._print("Check if any video has no relation in uservideo",1)
     all_vids = Video.objects.annotate(num_users=Count('users'))
