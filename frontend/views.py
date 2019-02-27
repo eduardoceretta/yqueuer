@@ -28,7 +28,7 @@ def _parseYoutubeUrl(url):
     url = 'https://' + url
 
   urlp = urlparse(url)
-  if urlp.netloc == 'www.youtube.com' or urlp.netloc == 'youtube.com':
+  if urlp.netloc == 'www.youtube.com' or urlp.netloc == 'youtube.com' or urlp.netloc == 'm.youtube.com':
     data['urlparse'] = urlp
 
     if urlp.path == '/watch':
@@ -322,12 +322,22 @@ def removeChannel(request):
 
   user = request.user
 
-  y_channel_id  = request.POST.get('y_channel_id', None)
-  if not y_channel_id:
+  url = request.POST.get('youtube_url', None)
+  if url:
+    parsed = _parseYoutubeUrl(url)
+    y_channel_id      = parsed.get('y_channel_id', None)
+    channel_username  = parsed.get('channel_username', None)
+
+  if not y_channel_id and not channel_username:
     response_data = {'error' : "Invalid parameters"}
     return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
-  channel_qs = Channel.objects.filter(y_channel_id = y_channel_id)
+  channel_qs = None
+  if y_channel_id:
+    channel_qs = Channel.objects.filter(y_channel_id = y_channel_id)
+  elif channel_username:
+    channel_qs = Channel.objects.filter(username__iexact = channel_username)
+
   if len(channel_qs) <= 0 :
     return HttpResponse(json.dumps(response_data), content_type = "application/json")
 

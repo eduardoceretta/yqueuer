@@ -17,6 +17,20 @@
       </small>
     </span>
   </div>
+
+  <div id="rm_channel">
+    <span>
+      Remove Channel:
+      <input id="rm_channel_youtube_url" type="text" size="50" name="rm_youtube_url" placeholder="Youtube URL">
+      <button id="rm_channel_submit"> Submit </button>
+      <span id="rm_channel_result"></span>
+      <br>
+      <small>
+        - Youtube Video URL: Removes video's channel.<br>
+        - Youtube Channel URL: Removes respective channel.
+      </small>
+    </span>
+  </div>
   <!--
   <div id="update_channel_library">
     <span>
@@ -76,6 +90,41 @@
             log('add_channel','error', xhr,status,error);
             add_channel.div.find(":input").attr("disabled", false);
             add_channel.result.text('error');
+          }
+        });
+      });
+
+      var rm_channel = {
+        'div' : $("#rm_channel"),
+        'youtube_url' : $("#rm_channel_youtube_url"),
+        'submit' : $("#rm_channel_submit"),
+        'result' : $("#rm_channel_result"),
+      }
+      rm_channel.submit.on('click', function(e) {
+        log ('rm_channel.submit');
+        log(rm_channel.youtube_url.val());
+        var youtube_url = rm_channel.youtube_url.val();
+        rm_channel.result.text('processing...');
+        rm_channel.div.find(":input").attr("disabled", true);
+        $.ajax({
+          method: "POST",
+          url: "/api/rm_channel/",
+          headers: {'X-CSRFToken': '{{ csrf_token }}'},
+          data: {
+            'youtube_url' : youtube_url,
+          },
+          success: function(result){
+            rm_channel.div.find(":input").attr("disabled", false);
+            if(result.success) {
+              rm_channel.result.text('success! removed channel ' + result.data.channel_title);
+            } else if(result.error) {
+              rm_channel.result.text('error: ' + result.error);
+            }
+          },
+          error: function(xhr,status,error){
+            log('rm_channel','error', xhr,status,error);
+            rm_channel.div.find(":input").attr("disabled", false);
+            rm_channel.result.text('error');
           }
         });
       });
