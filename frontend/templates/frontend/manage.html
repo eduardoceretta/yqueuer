@@ -45,7 +45,7 @@
   <div id="get_channels">
     <span>
       Get Channels:
-      <span id="get_channels_list" style="display:inline-block"></span>
+      <span id="get_channels_list"></span>
       <button id="get_channels_submit"> Submit </button>
       <span id="get_channels_result"></span>
     </span>
@@ -53,6 +53,8 @@
 
 
   <script type="text/javascript">
+
+
     function log() {
       console.log('_Y_',arguments);
     }
@@ -190,14 +192,22 @@
                   thumbnail.attr('src', channels[i].thumbnails);
                   var title = $('<span>');
                   title.text(channels[i].title + ' (user: ' + channels[i].username + ') [id: ' + channels[i].id + ']');
+                  var button = $("<button>");
+                  button.click(removeChannelButton);
+                  button.text("Remove");
+                  button.attr("data-y_channel_id", channels[i].id);
 
                   item.append(thumbnail);
                   item.append(title);
+                  item.append(button);
 
                   list.append(item);
               }
 
-              get_channels.channels_list.append(list);
+              var div = $('<div>');
+              div.append(list);
+              get_channels.channels_list.append(div);
+              // get_channels.channels_list.append(list);
             } else if(result.error) {
               get_channels.result.text('error: ' + result.error);
             }
@@ -210,6 +220,36 @@
         });
       });
 
+      function removeChannelButton() {
+        var y_channel_id = $(this).attr('data-y_channel_id');
+        log ('remove channel button');
+        log(y_channel_id);
+        get_channels.channels_list.text('');
+        get_channels.result.text('processing...');
+
+        $.ajax({
+          method: "POST",
+          url: "/api/rm_channel/",
+          headers: {'X-CSRFToken': '{{ csrf_token }}'},
+          data: {
+            'y_channel_id' : y_channel_id,
+          },
+          success: function(result){
+            if(result.success) {
+              get_channels.result.text('success! removed channel ' + result.data.channel_title);
+            } else if(result.error) {
+              get_channels.result.text('error' + result.error);
+            }
+          },
+          error: function(xhr,status,error){
+            log('remove channel button ','error', xhr,status,error);
+            get_channels.result.text('error');
+          }
+        });
+      }
+
     });
+
+
   </script>
 {% endblock %}

@@ -323,6 +323,7 @@ def removeChannel(request):
   user = request.user
 
   url = request.POST.get('youtube_url', None)
+  y_channel_id = request.POST.get('y_channel_id', None)
   if url:
     parsed = _parseYoutubeUrl(url)
     y_channel_id      = parsed.get('y_channel_id', None)
