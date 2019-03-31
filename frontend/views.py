@@ -77,6 +77,21 @@ def _getUserPreferences(user):
     'video_playback_rate': float(preferences.video_playback_rate),
   }
 
+def _shuffle_channels(videos):
+  channel_dict = {}
+  for video in videos:
+    channel_title = video['channel_title']
+    if (channel_title not in channel_dict) :
+      channel_dict[channel_title] = []
+    channel_dict[channel_title].append(video)
+
+  channel_order = list(map(lambda v: v['channel_title'], videos))
+  random.shuffle(channel_order)
+
+  videos_new = list(map(lambda c: channel_dict[c].pop(0), channel_order))
+  return videos_new
+
+
 ##############################################
 # Pages
 ##############################################
@@ -197,6 +212,8 @@ def getVideos(request):
       'thumbnails' : video.thumbnails,
       'description' : video.description,
     })
+
+  videos = _shuffle_channels(videos)
 
   response_data = {'success': True, 'data' : {'channels' : map(lambda x: x.name, u_channels), 'videos' : videos }}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
