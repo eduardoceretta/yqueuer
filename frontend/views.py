@@ -86,6 +86,8 @@ def _shuffle_channels(videos):
     channel_dict[channel_title].append(video)
 
   channel_order = list(map(lambda v: v['channel_title'], videos))
+
+  random.seed(datetime.datetime.today().timetuple().tm_yday)
   random.shuffle(channel_order)
 
   videos_new = list(map(lambda c: channel_dict[c].pop(0), channel_order))
