@@ -1,4 +1,4 @@
-django==1.11
+django==1.11.28
 psycopg2
 appdirs==1.4.3
 certifi==2017.7.27.1
