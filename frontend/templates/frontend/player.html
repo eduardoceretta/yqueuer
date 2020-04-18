@@ -46,10 +46,12 @@
       this._onPlayerStateChange = function(event) {
         var playerStatus = event.data;
         var state;
-
+        var curVideoInfo = this.m_videos_dataset[this.m_cur_index];
+        var publishDate = curVideoInfo.published_at.split(' ')[0];
         // Update Video's Title
         var vdata = this.m_player.getVideoData();
-        title.innerHTML = vdata.author + " - " + vdata.title;
+        title.innerHTML = curVideoInfo.channel_title + " - " + curVideoInfo.title;
+        published_at.innerHTML = publishDate;
 
         if (playerStatus == -1) {
           state = 'unstarted'
@@ -143,6 +145,7 @@
 
 
     var title;
+    var published_at;
     var player;
     var speech_recognitier;
     var videos = [];
@@ -190,6 +193,7 @@
           }
       );
       title = document.getElementById('video-title');
+      published_at = document.getElementById('video-published_at');
     }
 
     function Skip() {
@@ -260,9 +264,10 @@
       for(var i = 0; i < videos.length; i++) {
           // Create the list item:
           var item = document.createElement('li');
+          var publish_date = videos[i].published_at.split(' ')[0];
 
           // Set its contents:
-          item.appendChild(document.createTextNode(videos[i].channel_title + " - " + videos[i].title));
+          item.appendChild(document.createTextNode(videos[i].channel_title + " - " + videos[i].title + " - " + publish_date));
 
           // Add it to the list:
           list.appendChild(item);
@@ -340,6 +345,7 @@
     <div class="col-12">
       <div class="video-title-container">
         <h2 id="video-title"></h2>
+        <h4 id="video-published_at"></h4>
       </div>
     </div>
   </div>
