@@ -7,16 +7,23 @@ from apiclient.discovery import build
 from apiclient.errors import HttpError
 from oauth2client.tools import argparser
 
+from googleapiclient.errors import HttpError
+
 def searchChannelById(dev_key, y_channel_id):
   DEVELOPER_KEY = dev_key
   YOUTUBE_API_SERVICE_NAME = "youtube"
   YOUTUBE_API_VERSION = "v3"
   youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
     developerKey=DEVELOPER_KEY)
-  search_response = youtube.channels().list(
-    part='contentDetails,snippet',
-    id=y_channel_id
-  ).execute()
+
+  try:
+    search_response = youtube.channels().list(
+      part='contentDetails,snippet',
+      id=y_channel_id
+    ).execute()
+  except HttpError as e:
+    print ("ERROR [HttpError]: " + str(e))
+    return None
 
   channels = []
   for search_result in search_response.get("items", []):
@@ -38,10 +45,15 @@ def searchChannelByUsername(dev_key, username):
   YOUTUBE_API_VERSION = "v3"
   youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
     developerKey=DEVELOPER_KEY)
-  search_response = youtube.channels().list(
-    part='contentDetails,snippet',
-    forUsername=username
-  ).execute()
+
+  try:
+    search_response = youtube.channels().list(
+      part='contentDetails,snippet',
+      forUsername=username
+    ).execute()
+  except HttpError as e:
+    print ("ERROR [HttpError]: " + str(e))
+    return None
 
   channels = []
   for search_result in search_response.get("items", []):
@@ -70,12 +82,16 @@ def getVideosFromPlaylist(dev_key, playlist_id, last_video_id):
   max_pages = 300
   nextPageToken = None
   while max_pages > 0 and (nextPageToken or i == 0):
-    search_response = youtube.playlistItems().list(
-      part = 'contentDetails,snippet',
-      playlistId = playlist_id,
-      maxResults = 50,
-      pageToken = nextPageToken,
-    ).execute()
+    try:
+      search_response = youtube.playlistItems().list(
+        part = 'contentDetails,snippet',
+        playlistId = playlist_id,
+        maxResults = 50,
+        pageToken = nextPageToken,
+      ).execute()
+    except HttpError as e:
+      print ("ERROR [HttpError]: " + str(e))
+      return []
 
     for search_result in search_response.get("items", []):
       vid_id = search_result["contentDetails"]["videoId"]
@@ -123,10 +139,14 @@ def getVideoInfo(dev_key, y_video_id):
   youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
     developerKey=DEVELOPER_KEY)
 
-  search_response = youtube.videos().list(
-    part='snippet',
-    id=y_video_id
-  ).execute()
+  try:
+    search_response = youtube.videos().list(
+      part='snippet',
+      id=y_video_id
+    ).execute()
+  except HttpError as e:
+    print ("ERROR [HttpError]: " + str(e))
+    return None
 
   videos = []
   for search_result in search_response.get("items", []):
