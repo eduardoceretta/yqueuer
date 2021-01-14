@@ -22,7 +22,7 @@ def searchChannelById(dev_key, y_channel_id):
       id=y_channel_id
     ).execute()
   except HttpError as e:
-    print ("ERROR [HttpError]: " + str(e))
+    print(("ERROR [HttpError]: " + str(e)))
     return None
 
   channels = []
@@ -52,7 +52,7 @@ def searchChannelByUsername(dev_key, username):
       forUsername=username
     ).execute()
   except HttpError as e:
-    print ("ERROR [HttpError]: " + str(e))
+    print(("ERROR [HttpError]: " + str(e)))
     return None
 
   channels = []
@@ -90,7 +90,7 @@ def getVideosFromPlaylist(dev_key, playlist_id, last_video_id):
         pageToken = nextPageToken,
       ).execute()
     except HttpError as e:
-      print ("ERROR [HttpError]: " + str(e))
+      print(("ERROR [HttpError]: " + str(e)))
       return []
 
     for search_result in search_response.get("items", []):
@@ -145,7 +145,7 @@ def getVideoInfo(dev_key, y_video_id):
       id=y_video_id
     ).execute()
   except HttpError as e:
-    print ("ERROR [HttpError]: " + str(e))
+    print(("ERROR [HttpError]: " + str(e)))
     return None
 
   videos = []

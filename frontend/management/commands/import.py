@@ -3,7 +3,7 @@ import sys
 import pprint
 import requests
 import traceback
-from cStringIO import StringIO
+from io import StringIO
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -206,6 +206,6 @@ class Command(BaseCommand):
     self._print("[WARN]" + msg, 0)
 
   def _print(self, obj, indent_level = 0):
-    u_obj = (u' '+obj).encode('ascii', 'ignore').decode('ascii')
+    u_obj = (' '+obj).encode('ascii', 'ignore').decode('ascii')
     self.stdout_mail.write(" "*indent_level + u_obj + "\n")
     self.stdout.write(" "*indent_level + u_obj)

@@ -5,7 +5,7 @@ import pytz
 import datetime
 import os
 
-from urlparse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 
 from django.conf import settings
 from django.http import Http404
@@ -85,12 +85,12 @@ def _shuffle_channels(videos):
       channel_dict[channel_title] = []
     channel_dict[channel_title].append(video)
 
-  channel_order = list(map(lambda v: v['channel_title'], videos))
+  channel_order = list([v['channel_title'] for v in videos])
 
   random.seed(datetime.datetime.today().timetuple().tm_yday)
   random.shuffle(channel_order)
 
-  videos_new = list(map(lambda c: channel_dict[c].pop(0), channel_order))
+  videos_new = list([channel_dict[c].pop(0) for c in channel_order])
   return videos_new
 
 
@@ -122,7 +122,7 @@ def register(request):
 
       registered = True
     else:
-      print user_form.errors
+      print((user_form.errors))
   else:
     user_form = UserForm()
 
@@ -145,7 +145,7 @@ def user_login(request):
       else:
         return HttpResponse("Your Rango account is disabled.")
     else:
-      print "Invalid login details: {0}".format(username)
+      print (f"Invalid login details: {username}")
       return HttpResponse("Invalid login details supplied.")
   else:
     return render(request, 'frontend/login.html', {})
@@ -162,16 +162,16 @@ def user_logout(request):
 @login_required
 def player(request):
   channel_list = None
-  if request.GET.has_key('channel_list') :
+  if 'channel_list' in request.GET :
     channel_list = request.GET['channel_list']
-  elif request.GET.has_key('channel') :
+  elif 'channel' in request.GET :
     channel_list = ",".join(request.GET.getlist('channel'))
 
   all_channels = _getChannels(request.user)
 
   preferences = _getUserPreferences(request.user)
 
-  debug = request.GET.has_key('debug') and 1 or 0
+  debug = 'debug' in request.GET and 1 or 0
 
   context = { 'channel_list' : channel_list, 'all_channels' : all_channels, 'preferences': preferences, 'debug': debug}
   return render(request, 'frontend/player.html', context)
@@ -190,7 +190,7 @@ def getVideos(request):
   user = request.user
 
   channel_list = []
-  if request.GET.has_key('channel_list') :
+  if 'channel_list' in request.GET :
     channel_list = request.GET['channel_list'].split(',')
 
   # Select videos, from user's channel list, with no entry on RUserVideo for that user or it has but watched is false
@@ -217,7 +217,7 @@ def getVideos(request):
 
   videos = _shuffle_channels(videos)
 
-  response_data = {'success': True, 'data' : {'channels' : map(lambda x: x.name, u_channels), 'videos' : videos }}
+  response_data = {'success': True, 'data' : {'channels' : [x.name for x in u_channels], 'videos' : videos }}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")
 
 ##################################
@@ -418,7 +418,7 @@ def setUserVideoPlaybackRate(request):
 
 
 def postJSError(request):
-  print >>sys.stderr, 'JSERROR: ', request.POST['msg'], request.POST['url'], request.POST['lineNo'],request.POST['columnNo'],request.POST['error']
+  print('JSERROR: ', request.POST['msg'], request.POST['url'], request.POST['lineNo'],request.POST['columnNo'],request.POST['error'], file=sys.stderr)
 
   response_data = {'success': True}
   return HttpResponse(json.dumps(response_data), content_type = "application/json")

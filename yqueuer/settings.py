@@ -24,7 +24,7 @@ def readSecrets():
         if os.environ.get(key):
             config[key] = os.environ.get(key)
         else :
-            print >>sys.stderr, 'SECRETS CONFIG: Ignoring:', key
+            print('SECRETS CONFIG: Ignoring:', key, file=sys.stderr)
 
     # f = open(SECRETS_PATH, 'r')
     # for line in f:
