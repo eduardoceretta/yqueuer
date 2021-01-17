@@ -14,7 +14,7 @@ Setup
     source config/export_env
 
 Run Server
-  docker run -p 8990:8990 -v /docker_yqueuer/yqueuer:/yqueuer --env SECRET_KEY --env DB_USER --env DB_PASS --env ALLOWED_HOSTS --env YOUTUBE_API_KEY --env DATABASE_URL --env MAILGUN_API_KEY --env MAILGUN_DOMAIN --env PROJECT_EMAIL yqueuer
+  docker run -p 8990:8990 -v /docker_yqueuer/yqueuer:/yqueuer --env SECRET_KEY --env DB_USER --env DB_PASS --env ALLOWED_HOSTS=localhost --env YOUTUBE_API_KEY --env DATABASE_URL --env MAILGUN_API_KEY --env MAILGUN_DOMAIN --env PROJECT_EMAIL yqueuer
 
 Run Import
   docker run -v /docker_yqueuer/yqueuer:/yqueuer --env SECRET_KEY --env DB_USER --env DB_PASS --env ALLOWED_HOSTS --env YOUTUBE_API_KEY --env DATABASE_URL --env MAILGUN_API_KEY --env MAILGUN_DOMAIN --env PROJECT_EMAIL yqueuer python manage.py import
@@ -24,6 +24,9 @@ Run Python Shell with Django #django_shell
 
 Run bash in container
   winpty docker run -i -t -v /docker_yqueuer/yqueuer:/yqueuer  --env SECRET_KEY --env DB_USER --env DB_PASS --env ALLOWED_HOSTS --env YOUTUBE_API_KEY --env DATABASE_URL --env MAILGUN_API_KEY --env MAILGUN_DOMAIN --env PROJECT_EMAIL  yqueuer /bin/bash
+
+SSH into Heroku Dyno
+  heroku ps:exec -a yqueuer
 
 
 ## Deploy
@@ -42,6 +45,7 @@ from frontend.models import Channel, Video, RUserVideo, RUserChannel
 from django.contrib.auth.models import User
 from django.db.models import Max, Min, Avg, Count
 import pprint
+from frontend.yqueuer_api import *
 
 # select count(1) from table
 Video.objects.all().count()
@@ -80,7 +84,7 @@ Dump database from docker
 - Build
   docker image rm yqueuer
   docker build -f docker/Dockerfile --rm -t yqueuer yqueuer
-  docker build -f docker/Dockerfile3 --rm -t yqueuer3 yqueuer
+  docker build -f docker/Dockerfile27 --rm -t yqueuer27 yqueuer
 
 - Test docker
   docker image ls
@@ -104,6 +108,10 @@ Config Env
     heroku config --shell --remote heroku
   Set new configs
     heroku config:set --remote heroku-20 key=value
+
+Migrate Python]
+  2to3 by sshing into python 3 image
+  2to3 -w yqueuer/wsgi.py
 
 Push
   heroku login
