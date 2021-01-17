@@ -36,6 +36,9 @@ SSH into Heroku Dyno
     username (from cat $HOME/_netrc)
     password (from cat $HOME/_netrc)
 
+Yqueuer2
+  git push heroku-20 master
+
 ## DB
 Run Python Shell with Django (search #django_shell)
 
