@@ -55,19 +55,18 @@ def _markWatched(user, video):
   uservideo.save()
 
 def _getChannels(user):
-  # Select videos, from user's channel list, with no entry on RUserVideo for that user or it has but watched is false
-  u_channels = user.channel_set.all()
-
+  u_ruserchannels = user.ruserchannel_set.all()
   channels = []
-  for channel in u_channels:
+  for ruserchannel in u_ruserchannels:
+    channel = ruserchannel.channel
     channels.append({
       'id': channel.y_channel_id,
       'title': channel.title,
       'name': channel.name,
       'username': channel.username,
       'thumbnails' : channel.thumbnails,
+      'num_remaining_vid' : ruserchannel.num_remaining_vid
     })
-
   return channels
 
 def _getUserPreferences(user):

@@ -73,6 +73,10 @@ pprint.pprint([(x.y_channel_id, x.name) for x in Channel.objects.all()])
 Video.objects.all().delete()
 ```
 
+Alter table
+  See #Django
+
+
 parse from DATABASE_URL
   postgresql://[user[:password]@][hostname][:port][/dbname]
 
@@ -82,6 +86,14 @@ Connect to Database from docker
 Dump database from docker
   docker run -it --rm  postgres pg_dump -h <HOSTNAME> -U <USERNAME> -p <PORT> -d <DBNAME> > dump.bak
   * This command will stop and wait for password but not ouput anything, just paste the password and wait
+
+## Django
+
+Migrate DB
+  - Modify models.py
+  - python manage.py makemigrations
+  - Check new file
+  - python manage.py migrate
 
 ## Docker
 - Build

@@ -41,9 +41,10 @@ class RUserChannel(models.Model):
   last_vid_pub_date = models.DateTimeField(null = True, blank = True)
   last_vid_y_vid_id = models.CharField(max_length = 200, blank = True, null = True)
   avg_freq_per_day  = models.DecimalField(max_digits = 5, decimal_places = 2, default = 0, blank = True, null = True)
+  num_remaining_vid = models.IntegerField(blank = True, null = True, default = -1)
 
   def __str__(self):
-    return "User: %s | Channel: %s | NumVid: %d" % (self.user.username, self.channel.title, self.num_vid)
+    return "User: %s | Channel: %s | NumVid: %d | RemainingVid: %d" % (self.user.username, self.channel.title, self.num_vid, self.num_remaining_vid)
 
 
 class RUserVideo(models.Model):

@@ -87,15 +87,17 @@ class Command(BaseCommand):
         self._print("Processing Channel %s[nv%d/%d] last(%s)" % (u_c.channel.title, u_c.num_vid, IMPORT_LOWER_BOUNDARY, u_c.last_vid_y_vid_id), 3)
         if u_c.num_vid <= IMPORT_LOWER_BOUNDARY:
           self._print("Need to import %d new videos" % (IMPORT_UPPER_BOUNDARY - u_c.num_vid), 4)
-          videos = self._fetchNewVideos(u, u_c.channel, u_c.last_vid_y_vid_id, u_c.last_vid_pub_date, IMPORT_UPPER_BOUNDARY - u_c.num_vid)
-          self._print("Got %d Videos" % (len(videos)), 4)
+          all_videos = self._fetchNewVideos(u_c.channel, u_c.last_vid_y_vid_id)
+          videos = self._storeVideos(u, u_c.channel, all_videos, IMPORT_UPPER_BOUNDARY - u_c.num_vid)
+          self._print("Got %d videos out of %d videos" % (len(videos), len(all_videos)), 4)
           if len(videos) > 0:
             last_vid = videos[-1]
+            u_c.num_remaining_vid = len(all_videos) + u_c.num_vid
             u_c.num_vid += len(videos)
             u_c.last_vid_y_vid_id = last_vid.y_video_id
             u_c.last_vid_pub_date = last_vid.published_at
             u_c.save()
-            self._print("Updated UserChannel. nv=%d last=%s" % (u_c.num_vid, u_c.last_vid_y_vid_id), 4)
+            self._print("Updated UserChannel. nv=%d last=%s remaining=%d" % (u_c.num_vid, u_c.last_vid_y_vid_id, u_c.num_remaining_vid), 4)
 
             for v in videos:
               uservideo = u.ruservideo_set.create(video = v)
@@ -124,8 +126,10 @@ class Command(BaseCommand):
     return video_qs
 
 
-  def _fetchNewVideos(self, u, c, last_vid_y_vid_id, last_vid_pub_date,  n):
-    videos = getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], c.playlist_uploads_id, last_vid_y_vid_id)
+  def _fetchNewVideos(self, c, last_vid_y_vid_id):
+    return getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], c.playlist_uploads_id, last_vid_y_vid_id)
+
+  def _storeVideos(self, u, c, videos, n):
     db_videos = []
 
     for v in videos[0:n]:
