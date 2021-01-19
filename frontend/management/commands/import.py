@@ -64,8 +64,9 @@ class Command(BaseCommand):
 
         # Update UserChannel counter
         userchannel.num_vid-=1
+        userchannel.num_remaining_vid-=1
         userchannel.save()
-        self._print("Updated UserChannel num_vid to %d" % userchannel.num_vid, 4)
+        self._print("Updated UserChannel num_vid to %d and num_remaining_vid to %d" % (userchannel.num_vid, userchannel.num_remaining_vid), 4)
 
         # Update Video Refcount and delete it if needed
         v.ref_count-=1

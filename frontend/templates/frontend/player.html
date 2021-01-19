@@ -320,7 +320,11 @@
           <ul>
 {% for channel in all_channels %}
             <li>
-              <label><img class="channel_thumbnail" src={{ channel.thumbnails }}>
+              <label>
+  {% if channel.num_remaining_vid > 0 %}
+                <span class="counter-badge">{{ channel.num_remaining_vid }}</span>
+  {% endif %}
+                <img class="channel_thumbnail" src={{ channel.thumbnails }}>
   {% if channel.name in channel_list or not channel_list %}
               <input type="checkbox" checked="True" name="channel" value="{{ channel.name }}">{{ channel.title }}
   {% else %}

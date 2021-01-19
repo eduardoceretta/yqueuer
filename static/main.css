@@ -248,3 +248,10 @@ body {
     visibility: visible;
     opacity: 1;
 }
+
+.counter-badge {
+  position: absolute;
+  border-radius: 50%;
+  background: red;
+  color: white;
+}
