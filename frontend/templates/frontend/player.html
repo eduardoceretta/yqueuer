@@ -7,8 +7,9 @@
   <script src="{% static "javascript/speech_recognition.js" %}"></script>
   <script type="text/javascript">
     Y = {
-      'DEBUG' : {{ debug }},
+      'DEBUG' : {{ debug }}
     };
+
     function INFO() {
       if (Y.DEBUG)
         console.log('_Y_',arguments);
@@ -26,13 +27,27 @@
       // User Preferences
       this.m_current_video_playback_rate = {{ preferences.video_playback_rate }};
 
+      this._mapPlayerState = function(playerState) {
+        var map = {
+          '-1' : 'unstarted',
+          '0': 'ended',
+          '1': 'playing',
+          '2': 'paused',
+          '3': 'buffering',
+          '5': 'cued'
+        };
+        return map[playerState] || "_UNDEFINED_STATE_";
+      }
+
       this._onPlayerReady = function(event) {
+        INFO('YQ_Player.onPlayerReady');
         this.m_player.cuePlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
         // Set Player video playback rate preference
         this.m_player.setPlaybackRate(this.m_current_video_playback_rate);
       }
 
       this._onPlaybackRateChange = function(event) {
+        INFO('YQ_Player.onPlaybackRateChange');
         var new_playback_rate = event['data']
         if( this.m_store_playbackrate_cb
           && new_playback_rate != this.m_current_video_playback_rate
@@ -45,46 +60,42 @@
 
       this._onPlayerStateChange = function(event) {
         var playerStatus = event.data;
-        var state;
+        var state = this._mapPlayerState(playerStatus);
         var curVideoInfo = this.m_videos_dataset[this.m_cur_index];
         var publishDate = curVideoInfo.published_at.split(' ')[0];
-        // Update Video's Title
+        var playlistIndex = this.m_player.getPlaylistIndex();
         var vdata = this.m_player.getVideoData();
+
+        INFO('YQ_Player.onPlayerStateChanged to state:'+state + '('+playerStatus+')'
+            +' playlistIndex: '+ playlistIndex
+            +' title: ' + vdata.title + '-' + vdata.author
+            + ']');
+        // Update Video's Title
         title.innerHTML = curVideoInfo.channel_title + " - " + curVideoInfo.title;
         published_at.innerHTML = publishDate;
 
-        if (playerStatus == -1) {
-          state = 'unstarted'
+        if (state == 'unstarted') {
           if(vdata.title != "") {
+            INFO('YQ_Player.onPlayerStateChanged is unstarted and there is video info. Scheduling ForcePlay.');
             var s = this;
             setTimeout(function(){
-              INFO('unstarted TIMEOUT');
-              INFO("unstarted TIMEOUT STATE", s.m_player.getPlayerState());
-              if (s.m_player.getPlayerState() == -1)
+              var curState = s._mapPlayerState(s.m_player.getPlayerState());
+              var curPlaylistIndex = s.m_player.getPlaylistIndex();
+              INFO('Timer.ForcePlay current state:'+ curState + ' current index:' + curPlaylistIndex);
+              if (curState == 'unstarted') {
+                INFO('Timer.ForcePlay still unstarted. Forcing play.');
                 s.m_player.playVideo();
-                INFO('unstarted TIMEOUT force play');
+              }
             }, 3000);
           }
-        } else if (playerStatus == 0) {
-          state = 'ended'
+        } else if (state == 'ended') {
+          INFO('YQ_Player.onPlayerStateChanged to end. Performing endVideo action.');
           this.endVideo();
-
-          // INFO(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
-        } else if (playerStatus == 1) {
-          state = 'playing'
-        } else if (playerStatus == 2) {
-          state = 'paused'
-        } else if (playerStatus == 3) {
-          state = 'buffering'
-        } else if (playerStatus == 5) {
-          state = 'cued'
-        } else {
-          state = '_else_';
         }
-        INFO(state, this.m_player.getPlaylistIndex(), vdata.title, vdata.author, vdata.video_id, this.m_videos_ids, vdata);
       }
 
       this._playNextVideo = function() {
+        INFO('YQ_Player.playNextVideo');
         if (this.m_cur_index >= this.m_videos_ids.length - 1) {
           this.m_player.stopVideo();
         } else {
@@ -94,19 +105,23 @@
       }
 
       this._storeWatched = function() {
+        INFO('YQ_Player.storeWatched');
         var playlist_index = this.m_player.getPlaylistIndex();
         this.m_store_watched_cb(this.m_videos_ids[playlist_index]);
       }
 
       this._playVideo = function() {
+        INFO('YQ_Player.playVideo');
         this.m_player.playVideo();
       }
 
       this._pauseVideo = function() {
+        INFO('YQ_Player.pauseVideo');
         this.m_player.pauseVideo();
       }
 
       this._restartVideo = function() {
+        INFO('YQ_Player.restartVideo');
         this.m_player.seekTo(0);
       }
 
@@ -119,7 +134,7 @@
           }
       });
 
-      INFO('new', div_id, opts, this);
+      INFO('YQ_Player.constructed', div_id, opts, this);
     }
 
     YQ_Player.prototype.skipVideo = function() {
@@ -197,26 +212,32 @@
     }
 
     function Skip() {
+      INFO('Action.Skip');
       player.skipVideo();
     }
 
     function End() {
+      INFO('Action.End');
       player.endVideo();
     }
 
     function Play() {
+      INFO('Action.Play');
       player.playVideo();
     }
 
     function Pause() {
+      INFO('Action.Pause');
       player.pauseVideo();
     }
 
     function Restart() {
+      INFO('Action.Restart');
       player.restartVideo();
     }
 
     function ToggleSpeech() {
+      INFO('Action.ToggleSpeech');
       if(speech_recognitier.isListening()) {
         speech_recognitier.stop();
       } else {
@@ -238,6 +259,7 @@
         }
       });
     }
+
     function storePlaybackRateCb(video_playback_rate) {
       INFO('storePlaybackRateCb', video_playback_rate);
       $.ajax({
@@ -277,6 +299,7 @@
     }
 
     function InitSpeechRecognition() {
+      INFO("InitSpeechRecognition");
       speech_recognitier = new YQ_SpeechRecognition(
         {
           'skip' : Skip,
