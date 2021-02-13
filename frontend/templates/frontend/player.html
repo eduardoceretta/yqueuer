@@ -101,6 +101,8 @@
         } else {
           this.m_cur_index++;
           this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
+          // This is not necessary in theory since loadPlaylist recieves it as a parameter. But it isn't working. This fixes it.
+          this.m_player.playVideoAt(this.m_cur_index);
         }
       }
 
