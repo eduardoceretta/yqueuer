@@ -15,6 +15,10 @@ Setup
   OR
     docker-machine.exe restart box && eval $("docker-machine" env box) && source config/export_env
 
+Setup sshkeys
+  eval $(ssh-agent -s) && ssh-add ~/.ssh/id_rsa
+  fracanum
+
 Run Server
   docker run -p 8990:8990 -v /docker_yqueuer/yqueuer:/yqueuer --env SECRET_KEY --env DB_USER --env DB_PASS --env ALLOWED_HOSTS=localhost --env YOUTUBE_API_KEY --env DATABASE_URL --env MAILGUN_API_KEY --env MAILGUN_DOMAIN --env PROJECT_EMAIL yqueuer
 

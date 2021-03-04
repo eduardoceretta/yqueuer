@@ -24,6 +24,9 @@
       this.m_videos_dataset = videos;
       this.m_videos_ids = videos.map(function(e) {return e.id});
 
+      // This is a patch due to YOUTUBE's API being broken. Ideally this should be fixed in the future.
+      this.force_playlist_index = false;
+
       // User Preferences
       this.m_current_video_playback_rate = {{ preferences.video_playback_rate }};
 
@@ -91,6 +94,16 @@
         } else if (state == 'ended') {
           INFO('YQ_Player.onPlayerStateChanged to end. Performing endVideo action.');
           this.endVideo();
+        } else {
+          // This is not necessary in theory since loadPlaylist recieves it as a parameter. But it isn't working. This kind of fixes it.
+          if (this.force_playlist_index && playlistIndex != this.m_cur_index) {
+            INFO('YQ_Player.onPlayerStateChanged PlaylistIndex is different than m_cur_index, Forcing video playlistIndex', playlistIndex, this.m_cur_index);
+            this.m_player.playVideoAt(this.m_cur_index);
+          } else if (this.force_playlist_index && playlistIndex == this.m_cur_index) {
+            INFO('YQ_Player.onPlayerStateChanged PlaylistIndex is the same as m_cur_index. Disabling forced playlist index.');
+            // This is the next level patch to this functionality. This flag helps to retain playlist control from the UI.
+            this.force_playlist_index = false;
+          }
         }
       }
 
@@ -103,13 +116,16 @@
           this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1), this.m_cur_index);
           // This is not necessary in theory since loadPlaylist recieves it as a parameter. But it isn't working. This fixes it.
           this.m_player.playVideoAt(this.m_cur_index);
+          // This is the next level patch to this functionality. This flag helps to retain playlist control from the UI.
+          this.force_playlist_index = true;
         }
       }
 
       this._storeWatched = function() {
-        INFO('YQ_Player.storeWatched');
         var playlist_index = this.m_player.getPlaylistIndex();
-        this.m_store_watched_cb(this.m_videos_ids[playlist_index]);
+        var video_id = this.m_videos_ids[playlist_index];
+        INFO('YQ_Player.storeWatched', playlist_index, video_id);
+        this.m_store_watched_cb(video_id);
       }
 
       this._playVideo = function() {
