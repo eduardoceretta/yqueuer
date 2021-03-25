@@ -77,6 +77,13 @@ pprint.pprint([(x.y_channel_id, x.name) for x in Channel.objects.all()])
 
 # truncate table
 Video.objects.all().delete()
+
+#Reload module
+import importlib
+import frontend
+from frontend.yqueuer_api import *
+importlib.reload(frontend.yqueuer_api)
+from frontend.yqueuer_api import getVideosFromPlaylist
 ```
 
 Alter table

@@ -88,7 +88,7 @@ class Command(BaseCommand):
         self._print("Processing Channel %s[nv%d/%d] last(%s)" % (u_c.channel.title, u_c.num_vid, IMPORT_LOWER_BOUNDARY, u_c.last_vid_y_vid_id), 3)
         if u_c.num_vid <= IMPORT_LOWER_BOUNDARY:
           self._print("Need to import %d new videos" % (IMPORT_UPPER_BOUNDARY - u_c.num_vid), 4)
-          all_videos = self._fetchNewVideos(u_c.channel, u_c.last_vid_y_vid_id)
+          all_videos = self._fetchNewVideos(u_c.channel, u_c.last_vid_y_vid_id, u_c.last_vid_pub_date)
           videos = self._storeVideos(u, u_c.channel, all_videos, IMPORT_UPPER_BOUNDARY - u_c.num_vid)
           self._print("Got %d videos out of %d videos" % (len(videos), len(all_videos)), 4)
           if len(videos) > 0:
@@ -127,8 +127,9 @@ class Command(BaseCommand):
     return video_qs
 
 
-  def _fetchNewVideos(self, c, last_vid_y_vid_id):
-    return getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], c.playlist_uploads_id, last_vid_y_vid_id)
+  def _fetchNewVideos(self, c, last_vid_y_vid_id, last_vid_pub_date):
+    date_str = last_vid_pub_date.strftime("%Y-%m-%dT%H:%M:%SZ") if last_vid_pub_date is not None else None
+    return getVideosFromPlaylist(settings.SECRETS['YOUTUBE_API_KEY'], c.playlist_uploads_id, last_vid_y_vid_id, date_str)
 
   def _storeVideos(self, u, c, videos, n):
     db_videos = []

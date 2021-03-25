@@ -69,7 +69,7 @@ def searchChannelByUsername(dev_key, username):
 
   return channels[0] if len(channels) > 0 else None
 
-def getVideosFromPlaylist(dev_key, playlist_id, last_video_id):
+def getVideosFromPlaylist(dev_key, playlist_id, last_video_id, last_vid_pub_date):
   DEVELOPER_KEY = dev_key
   YOUTUBE_API_SERVICE_NAME = "youtube"
   YOUTUBE_API_VERSION = "v3"
@@ -127,6 +127,13 @@ def getVideosFromPlaylist(dev_key, playlist_id, last_video_id):
         final_vid.append(v)
     else:
       final_vid.append(v)
+
+  # Sometimes the last_video_id is deleted and that causes the playlist to never refresh.
+  if last_video_id and last_vid_pub_date and not seen_last_vid_id and len(final_vid) == 0 and len(videos) > 0 :
+    seen_last_pub_date = False
+    for v in videos:
+      if(v["published_at"]>=last_vid_pub_date):
+        final_vid.append(v)
 
   return final_vid
 
