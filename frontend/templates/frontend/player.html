@@ -20,6 +20,7 @@
       this.m_cur_index = 0;
       this.m_store_watched_cb = opts.store_watched;
       this.m_store_playbackrate_cb = opts.store_playbackrate;
+      this.m_skipped_cb = opts.skipped;
 
       this.m_videos_dataset = videos;
       this.m_videos_ids = videos.map(function(e) {return e.id});
@@ -42,7 +43,7 @@
 
       this._onPlayerReady = function(event) {
         INFO('YQ_Player.onPlayerReady');
-        this.m_player.cuePlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1).reverse(), 0);
+        this.m_player.cueVideoById(this.m_videos_ids[this.m_cur_index]);
         // Set Player video playback rate preference
         this.m_player.setPlaybackRate(this.m_current_video_playback_rate);
       }
@@ -64,11 +65,10 @@
         var state = this._mapPlayerState(playerStatus);
         var curVideoInfo = this.m_videos_dataset[this.m_cur_index];
         var publishDate = curVideoInfo.published_at.split(' ')[0];
-        var playlistIndex = this.m_player.getPlaylistIndex();
         var vdata = this.m_player.getVideoData();
 
         INFO('YQ_Player.onPlayerStateChanged to state:'+state + '('+playerStatus+')'
-            +' playlistIndex: '+ playlistIndex
+            +' m_cur_index: '+ this.m_cur_index
             +' title: ' + vdata.title + '-' + vdata.author
             + ']');
         // Update Video's Title
@@ -81,8 +81,7 @@
             var s = this;
             setTimeout(function(){
               var curState = s._mapPlayerState(s.m_player.getPlayerState());
-              var curPlaylistIndex = s.m_player.getPlaylistIndex();
-              INFO('Timer.ForcePlay current state:'+ curState + ' current index:' + curPlaylistIndex);
+              INFO('Timer.ForcePlay current state:'+ curState + ' current index:' + this.m_cur_index);
               if (curState == 'unstarted') {
                 INFO('Timer.ForcePlay still unstarted. Forcing play.');
                 s.m_player.playVideo();
@@ -101,15 +100,14 @@
           this.m_player.stopVideo();
         } else {
           this.m_cur_index++;
-          this.m_player.loadPlaylist(this.m_videos_ids.slice(0, this.m_cur_index+1).reverse(), 0);
+          this.m_player.loadVideoById(this.m_videos_ids[this.m_cur_index]);
         }
       }
 
       this._storeWatched = function() {
-        var playlist_index = this.m_player.getPlaylistIndex();
-        var video_id = this.m_videos_ids[playlist_index];
-        INFO('YQ_Player.storeWatched', playlist_index, video_id);
-        this.m_store_watched_cb(video_id);
+        var video_id = this.m_videos_ids[this.m_cur_index];
+        INFO('YQ_Player.storeWatched INFO m_cur_index:', this.m_cur_index, ' video_id:', video_id);
+        this.m_store_watched_cb(video_id,  this.m_cur_index);
       }
 
       this._playVideo = function() {
@@ -140,6 +138,8 @@
     }
 
     YQ_Player.prototype.skipVideo = function() {
+      var video_id = this.m_videos_ids[this.m_cur_index];
+      this.m_skipped_cb(video_id,  this.m_cur_index);
       this._playNextVideo();
     }
 
@@ -166,6 +166,7 @@
     var player;
     var speech_recognitier;
     var videos = [];
+    var videos_list_elements = [];
 
     function FetchVideos(success_cb, error_cb) {
       INFO('FetchVideos');
@@ -206,6 +207,7 @@
           videos,
           {
             'store_watched': storeWatchedCb,
+            'skipped': skipCb,
             'store_playbackrate': storePlaybackRateCb,
           }
       );
@@ -247,7 +249,7 @@
       }
     }
 
-    function storeWatchedCb(vid_id) {
+    function storeWatchedCb(vid_id, vid_index) {
       $.ajax({
         method: "POST",
         url: "/api/mark_watched/",
@@ -255,11 +257,16 @@
         data: { y_video_id : vid_id },
         success: function(result){
           INFO('storeWatchedCb','success', result);
+          videos_list_elements[vid_index].innerHTML = "<b>[WATCHED]</b> " + videos_list_elements[vid_index].innerHTML;
         },
         error: function(xhr,status,error){
           INFO('storeWatchedCb','error', xhr,status,error);
         }
       });
+    }
+
+    function skipCb(vid_id, vid_index) {
+      videos_list_elements[vid_index].innerHTML = "<b>[SKIPPED]</b>  " + videos_list_elements[vid_index].innerHTML;
     }
 
     function storePlaybackRateCb(video_playback_rate) {
@@ -290,11 +297,27 @@
           var item = document.createElement('li');
           var publish_date = videos[i].published_at.split(' ')[0];
 
+          // Create item content
+          var s = document.createElement('span');
+
+          var a = document.createElement('a');
+          var link = "https://www.youtube.com/watch?v=" + videos[i].id;
+          a.appendChild(document.createTextNode(videos[i].channel_title + " - " + videos[i].title));
+          a.title = link;
+          a.href = link;
+          a.target = "_blank";
+
+          s.appendChild(a);
+          s.appendChild(document.createTextNode(" - " + publish_date));
+
           // Set its contents:
-          item.appendChild(document.createTextNode(videos[i].channel_title + " - " + videos[i].title + " - " + publish_date));
+          item.appendChild(s);
 
           // Add it to the list:
           list.appendChild(item);
+
+          // Keep track of list elements
+          videos_list_elements.push(item);
       }
 
       div_list.appendChild(list);
